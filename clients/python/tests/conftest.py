@@ -46,7 +46,9 @@ def envelope() -> dict:
                 "code": "business-rule",
                 "ruleId": "EPI-TYPE-001",
                 "layer": "policy",
-                "location": {"fhirPath": "Bundle", "jsonPointer": "/", "line": None, "column": None},
+                "location": {
+                    "fhirPath": "Bundle", "jsonPointer": "/", "line": None, "column": None,
+                },
                 "message": "Requested ePI Type 3 but no clinical content found",
                 "profileUrl": None,
                 "source": {"type": "policy-pack", "id": "epi-gate-core", "version": "0.1.0"},
@@ -59,7 +61,10 @@ def envelope() -> dict:
                 "code": "structure",
                 "ruleId": "Terminology_TX_System_NotKnown",
                 "layer": "fhir",
-                "location": {"fhirPath": "Bundle.entry[1]", "jsonPointer": "/entry/1", "line": 3, "column": 1},
+                "location": {
+                    "fhirPath": "Bundle.entry[1]", "jsonPointer": "/entry/1",
+                    "line": 3, "column": 1,
+                },
                 "message": "CodeSystem 'https://spor.ema.europa.eu/v1/lists/1' is unknown",
                 "profileUrl": None,
                 "source": {"type": "profile-validator", "id": "hapi", "version": "8.10.0"},

@@ -151,5 +151,8 @@ class ValidationResult(_Camel):
             lines.append(f"{n}. {issue.describe()}")
         remaining = len(relevant) - max_issues
         if remaining > 0:
-            lines.append(f"... and {remaining} more issue(s) not shown — fix the above first, then revalidate.")
+            lines.append(
+                f"... and {remaining} more issue(s) not shown — "
+                "fix the above first, then revalidate."
+            )
         return "\n".join(lines)
