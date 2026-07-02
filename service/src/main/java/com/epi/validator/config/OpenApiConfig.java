@@ -14,14 +14,9 @@ public class OpenApiConfig {
         return new OpenAPI().info(new Info()
                 .title("FHIR ePI Validator")
                 .description("""
-                        Regulated validation gate for FHIR ePI (electronic Product Information) documents.
-
-                        Primary API: POST /api/v1/epi/validate. Production pipeline callers SHOULD pass \
-                        epiType explicitly and use validationMode=gate; epiType=auto is for exploratory \
-                        validation, diagnostics, demos, and malformed inbound triage.
-
-                        POST /fhir/$validate is a FHIR interop/debug endpoint only — not the regulated \
-                        pipeline gate.""")
+                        A lean validation service for checking AI-generated FHIR ePI Bundles against \
+                        FHIR R5 and the pinned HL7 ePI 1.0.0 STU1 Implementation Guide using the \
+                        official HAPI validator. Gate on the envelope's `verdict`, never on HTTP status.""")
                 .version("v1")
                 .license(new License().name("Apache-2.0")));
     }

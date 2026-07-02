@@ -1,8 +1,0 @@
-id: test-pack-conflicting
-version: 1.0.0
-appliesTo: ["1.0.0"]
-rules:
-  - ruleId: TEST-001
-    severity: warning
-    configurable: false
-    rationale: "Conflicts with test-pack-valid which declares TEST-001 as error"

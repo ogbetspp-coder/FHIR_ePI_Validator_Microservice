@@ -1,36 +1,31 @@
 package com.epi.validator.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
 /**
- * The validation envelope returned by {@code POST /api/v1/epi/validate} — the contract the
- * pipeline gates on. Never gate on HTTP status: this endpoint returns 200 whenever validation
- * executed, regardless of verdict.
+ * The validation envelope of {@code POST /api/v1/epi/validate}. Gate on {@code verdict} —
+ * this endpoint returns HTTP 200 whenever validation executed, regardless of outcome.
  */
-@JsonInclude(JsonInclude.Include.ALWAYS)
 public record ValidationResponse(
         Verdict verdict,
-        ValidationMode validationMode,
-        @Schema(description = "IG configuration id the bundle was validated against (e.g. 1.0.0)")
-        String igVersion,
         @Schema(description = "Caller's contract intent: 1 | 2 | 3 | auto")
         String requestedEpiType,
-        @Schema(description = "Type inferred from bundle contents — diagnostic only, never selects the gate")
+        @Schema(description = "Type inferred from bundle contents — diagnostic only")
         EpiType detectedEpiType,
-        @Schema(description = "Type that actually drove profile selection and type rules")
+        @Schema(description = "Type that drove the type checks: requested unless auto, then detected. "
+                + "An explicit request is never downgraded by detection.")
         EpiType effectiveEpiType,
         List<String> profilesValidatedAgainst,
-        ValidationStats stats,
-        @Schema(description = "Normalized issues ordered fatal, error, warning, information")
-        List<NormalizedIssue> issues,
-        @Schema(description = "Correlation id; propagate it through the pipeline (accepted inbound via X-Trace-Id)")
+        @Schema(description = "Defects ordered fatal, error, warning, information")
+        List<Issue> issues,
+        @Schema(description = "Full FHIR OperationOutcome for the run")
+        JsonNode operationOutcome,
+        @Schema(description = "SHA-256 of the raw request body bytes (post gzip inflation)")
+        String inputSha256,
+        @Schema(description = "Correlation id (accepted inbound via X-Trace-Id, else generated)")
         String traceId,
-        AuditInfo audit,
-        @JsonInclude(JsonInclude.Include.NON_NULL)
-        @Schema(description = "Full FHIR OperationOutcome; omitted when includeOperationOutcome=false")
-        JsonNode operationOutcome) {
+        ValidatorInfo validatorInfo) {
 }

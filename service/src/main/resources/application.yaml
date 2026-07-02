@@ -1,30 +1,21 @@
 server:
   port: 8080
-  # Large ePI bundles (base64 PDFs in Binary) — cap enforced post-inflation by GzipRequestFilter
   tomcat:
-    max-swallow-size: -1
+    max-swallow-size: -1   # large ePI payloads; the app enforces its own post-inflation cap
 
 spring:
   application:
     name: epi-validator
-  mvc:
-    problemdetails:
-      enabled: true
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health,info
   endpoint:
     health:
       probes:
-        enabled: true
-      show-details: always
-  health:
-    group:
-      readiness:
-        include: readinessState,validators
+        enabled: true      # /actuator/health/{liveness,readiness}; readiness flips after warmup
 
 springdoc:
   swagger-ui:
@@ -32,52 +23,15 @@ springdoc:
 
 logging:
   pattern:
-    # traceId from TraceIdFilter's MDC on every line
     console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%X{traceId:-}] %logger{36} - %msg%n"
 
 epi:
   validation:
-    # Env override names (relaxed binding, dashes dropped): EPI_VALIDATION_DEFAULTIG,
-    # EPI_VALIDATION_DEFAULTVALIDATIONMODE, EPI_VALIDATION_MAXCONCURRENTVALIDATIONS,
-    # EPI_VALIDATION_REQUESTTIMEOUTSECONDS, EPI_VALIDATION_WARNINGPOLICY_MODE,
-    # EPI_VALIDATION_REMOTETERMINOLOGY_ENABLED, EPI_VALIDATION_REMOTETERMINOLOGY_URL, ...
-    default-ig: "1.0.0"
-    default-validation-mode: exploratory     # production deployments set: gate
+    # Env override names (relaxed binding, dashes dropped): EPI_VALIDATION_MAXBODYMB, ...
     max-body-mb: 50
-    max-concurrent-validations: 8            # align with platform concurrency (Cloud Run --concurrency)
-    request-timeout-seconds: 120
-    concurrent-bundle-validation: false      # off in the first production cut
-    unknown-code-system-severity: warning    # warning|error — see docs/architecture.md (EDQM/MedDRA/ATC)
-    fhir-native-endpoint-enabled: true       # POST /fhir/$validate — interop/debug only, never the gate
-    profile-override:
-      enabled: true
-      allowed-in-modes: [exploratory]        # gate-mode overrides could bypass the type profile
-    remote-terminology:
-      enabled: false
-      url: ""
-    warning-policy:
-      mode: pass-with-warnings               # production: fail-unless-allowlisted
-      allowlist: []
-      # Example governed deviation:
-      # - rule-id: "Terminology_TX_System_NotKnown"
-      #   system: "https://spor.ema.europa.eu/v1/lists/*"
-      #   severity: warning
-      #   rationale: "Offline terminology unavailable; checked upstream by SPOR adapter"
-    policy-packs:
-      - epi-gate-core
-    igs:
-      - id: "1.0.0"
-        ig-package: packages/hl7.fhir.uv.emedicinal-product-info-1.0.0.tgz
-        dependency-packages:
-          - packages/hl7.terminology.r5-5.0.0.tgz
-          - packages/hl7.fhir.uv.extensions.r5-1.0.0.tgz
-        bundle-profile: http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Bundle-uv-epi
-      - id: "1.1.0"
-        ig-package: packages/hl7.fhir.uv.emedicinal-product-info-1.1.0-cibuild-20260701.tgz
-        dependency-packages:
-          - packages/hl7.terminology.r5-7.2.0.tgz
-          - packages/hl7.fhir.uv.extensions.r5-5.3.0.tgz
-        type-profiles:
-          "1": http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/bundle-epi-type1
-          "2": http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/bundle-epi-type2
-          "3": http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/bundle-epi-type3
+    ig-package: packages/hl7.fhir.uv.emedicinal-product-info-1.0.0.tgz
+    # NpmPackageValidationSupport does not resolve dependencies - list every declared dep:
+    dependency-packages:
+      - packages/hl7.terminology.r5-5.0.0.tgz
+      - packages/hl7.fhir.uv.extensions.r5-1.0.0.tgz
+    bundle-profile: http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Bundle-uv-epi

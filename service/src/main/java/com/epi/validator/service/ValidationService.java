@@ -3,35 +3,24 @@ package com.epi.validator.service;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.DataFormatException;
 import ca.uhn.fhir.parser.IParser;
+import ca.uhn.fhir.validation.FhirValidator;
 import ca.uhn.fhir.validation.ValidationOptions;
 import ca.uhn.fhir.validation.ValidationResult;
-import com.epi.validator.audit.ManifestService;
+import com.epi.validator.checks.SimpleDocumentChecks;
 import com.epi.validator.config.EpiValidationProperties;
-import com.epi.validator.config.EpiValidationProperties.IgConfig;
 import com.epi.validator.engine.EpiTypeDetector;
-import com.epi.validator.engine.IgRuntime;
-import com.epi.validator.engine.IssueNormalizer;
-import com.epi.validator.engine.ProfileResolver;
+import com.epi.validator.engine.IssueMapper;
 import com.epi.validator.engine.TypeResolution;
-import com.epi.validator.engine.ValidatorRegistry;
-import com.epi.validator.model.AuditInfo;
 import com.epi.validator.model.EpiType;
-import com.epi.validator.model.IssueLayer;
+import com.epi.validator.model.Issue;
 import com.epi.validator.model.IssueSeverity;
-import com.epi.validator.model.NormalizedIssue;
-import com.epi.validator.model.ValidationMode;
 import com.epi.validator.model.ValidationResponse;
-import com.epi.validator.model.ValidationStats;
+import com.epi.validator.model.ValidatorInfo;
 import com.epi.validator.model.Verdict;
-import com.epi.validator.policy.PolicyContext;
-import com.epi.validator.policy.PolicyEngine;
-import com.epi.validator.policy.WarningPolicy;
 import com.epi.validator.web.ApiException;
 import com.epi.validator.web.UnparseableRequestException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.Resource;
@@ -41,170 +30,88 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Orchestrates one validation run through all five layers:
- * parse -> FHIR R5 + ePI IG profile validation -> policy packs -> warning policy -> verdict.
+ * One validation run: parse the raw body as FHIR R5, validate it against the pinned ePI IG
+ * with the official validator engine, run the simple document/type checks, and derive the
+ * verdict from the validation result — never from HTTP status.
  */
 @Service
 public class ValidationService {
 
     private final FhirContext fhirContext;
+    private final FhirValidator validator;
     private final EpiValidationProperties properties;
-    private final ValidatorRegistry registry;
     private final EpiTypeDetector typeDetector;
-    private final ProfileResolver profileResolver;
-    private final PolicyEngine policyEngine;
-    private final WarningPolicy warningPolicy;
-    private final IssueNormalizer normalizer;
-    private final ManifestService manifestService;
-    private final ValidationExecutor executor;
-    private final MeterRegistry meterRegistry;
+    private final SimpleDocumentChecks simpleChecks;
+    private final IssueMapper issueMapper;
+    private final ValidatorInfo validatorInfo;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ValidationService(FhirContext fhirContext,
+                             FhirValidator validator,
                              EpiValidationProperties properties,
-                             ValidatorRegistry registry,
                              EpiTypeDetector typeDetector,
-                             ProfileResolver profileResolver,
-                             PolicyEngine policyEngine,
-                             WarningPolicy warningPolicy,
-                             IssueNormalizer normalizer,
-                             ManifestService manifestService,
-                             ValidationExecutor executor,
-                             MeterRegistry meterRegistry) {
+                             SimpleDocumentChecks simpleChecks,
+                             IssueMapper issueMapper,
+                             ValidatorInfo validatorInfo) {
         this.fhirContext = fhirContext;
+        this.validator = validator;
         this.properties = properties;
-        this.registry = registry;
         this.typeDetector = typeDetector;
-        this.profileResolver = profileResolver;
-        this.policyEngine = policyEngine;
-        this.warningPolicy = warningPolicy;
-        this.normalizer = normalizer;
-        this.manifestService = manifestService;
-        this.executor = executor;
-        this.meterRegistry = meterRegistry;
+        this.simpleChecks = simpleChecks;
+        this.issueMapper = issueMapper;
+        this.validatorInfo = validatorInfo;
     }
 
-    public record Request(
-            byte[] body,
-            String contentType,
-            String validationModeParam,
-            String epiTypeParam,
-            String igVersionParam,
-            List<String> profiles,
-            boolean includeOperationOutcome,
-            String traceId) {
-    }
+    public ValidationResponse validate(byte[] body, String contentType, String epiTypeParam, String traceId) {
+        String requestedType = normalizeRequestedType(epiTypeParam);
+        String raw = new String(body, StandardCharsets.UTF_8);
 
-    public ValidationResponse validate(Request request) {
-        long started = System.nanoTime();
-
-        IgConfig igConfig = resolveIgConfig(request.igVersionParam());
-        ValidationMode mode = resolveMode(request.validationModeParam());
-        String requestedType = normalizeRequestedType(request.epiTypeParam(), mode);
-
-        if (!registry.isReady() || !registry.hasRuntime(igConfig.id())) {
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
-                    "Validators are still warming up; check /actuator/health/readiness");
-        }
-        IgRuntime runtime = registry.runtimeFor(igConfig.id());
-
-        String raw = new String(request.body(), StandardCharsets.UTF_8);
-        Bundle bundle = parseBundle(raw, request, mode, igConfig);
-
+        Bundle bundle = parseBundle(raw, contentType, requestedType, body, traceId);
         EpiType detected = typeDetector.detect(bundle);
-        TypeResolution resolution = TypeResolution.resolve(requestedType, detected);
-        List<String> profiles = profileResolver.resolve(igConfig, mode, resolution.effective(), request.profiles());
+        TypeResolution types = TypeResolution.resolve(requestedType, detected);
 
-        ValidationOptions options = new ValidationOptions();
-        profiles.forEach(options::addProfile);
+        // Validate the raw source string — never a re-serialized object — so line/column
+        // locations survive for the repair loop.
+        ValidationResult result = validator.validateWithResult(raw,
+                new ValidationOptions().addProfile(properties.bundleProfile()));
 
-        // Validate from the raw source string — never a re-serialized object — so the validator
-        // can report line/column locations for the repair loop.
-        ValidationResult result = executor.execute(
-                () -> runtime.validator().validateWithResult(raw, options));
+        List<Issue> issues = new ArrayList<>();
+        result.getMessages().forEach(m -> issues.add(issueMapper.map(m)));
+        issues.addAll(simpleChecks.run(bundle, types));
+        List<Issue> sorted = issueMapper.sortBySeverity(issues);
 
-        List<NormalizedIssue> issues = new ArrayList<>();
-        result.getMessages().forEach(m -> issues.add(normalizer.normalize(m)));
-        issues.addAll(policyEngine.evaluate(new PolicyContext(
-                fhirContext,
-                bundle,
-                resolution,
-                igConfig.id(),
-                typeDetector.hasType2Content(bundle),
-                typeDetector.hasType3Content(bundle))));
-
-        WarningPolicy.Outcome outcome = warningPolicy.apply(normalizer.sortBySeverity(issues));
-
-        OperationOutcome operationOutcome = buildOperationOutcome(result, outcome.issues());
-        String encodedOutcome = fhirContext.newJsonParser().encodeResourceToString(operationOutcome);
-
-        long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
-        ValidationStats stats = ValidationStats.of(outcome.issues(), durationMillis);
-
-        ValidationResponse response = new ValidationResponse(
-                outcome.verdict(),
-                mode,
-                igConfig.id(),
-                resolution.requested(),
-                resolution.detected(),
-                resolution.effective(),
-                profiles,
-                stats,
-                outcome.issues(),
-                request.traceId(),
-                buildAudit(request, mode, igConfig, encodedOutcome),
-                request.includeOperationOutcome() ? toJsonNode(encodedOutcome) : null);
-
-        recordMetrics(igConfig.id(), mode, resolution.effective(), outcome.verdict(), durationMillis);
-        return response;
+        OperationOutcome outcome = buildOperationOutcome(result, sorted);
+        return new ValidationResponse(
+                verdictOf(sorted),
+                types.requested(),
+                types.detected(),
+                types.effective(),
+                List.of(properties.bundleProfile()),
+                sorted,
+                toJsonNode(fhirContext.newJsonParser().encodeResourceToString(outcome)),
+                sha256Hex(body),
+                traceId,
+                validatorInfo);
     }
 
-    /** FHIR-native $validate: same engine, returns the raw OperationOutcome only. */
-    public OperationOutcome validateToOperationOutcome(byte[] body, String contentType, List<String> profiles,
-                                                       String igVersionParam, String traceId) {
-        ValidationResponse response = validate(new Request(
-                body, contentType, ValidationMode.EXPLORATORY.wireValue(), TypeResolution.AUTO,
-                igVersionParam, profiles, false, traceId));
-        // Rebuild the OperationOutcome from the normalized issues (single code path for both APIs)
-        OperationOutcome outcome = new OperationOutcome();
-        for (NormalizedIssue issue : response.issues()) {
-            outcome.addIssue(toOutcomeIssue(issue));
+    private static Verdict verdictOf(List<Issue> issues) {
+        boolean hasError = issues.stream().anyMatch(Issue::isError);
+        if (hasError) {
+            return Verdict.FAIL;
         }
-        if (response.issues().isEmpty()) {
-            OperationOutcome.OperationOutcomeIssueComponent ok = outcome.addIssue();
-            ok.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
-            ok.setCode(OperationOutcome.IssueType.INFORMATIONAL);
-            ok.getDetails().setText("Validation passed with no issues");
-        }
-        return outcome;
+        boolean hasWarning = issues.stream().anyMatch(i -> i.severity() == IssueSeverity.WARNING);
+        return hasWarning ? Verdict.PASS_WITH_WARNINGS : Verdict.PASS;
     }
 
-    private IgConfig resolveIgConfig(String igVersionParam) {
-        try {
-            return properties.igConfigOrThrow(igVersionParam);
-        } catch (IllegalArgumentException e) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
-        }
-    }
-
-    private ValidationMode resolveMode(String modeParam) {
-        if (modeParam == null || modeParam.isBlank()) {
-            return properties.defaultValidationMode();
-        }
-        try {
-            return ValidationMode.fromWire(modeParam);
-        } catch (IllegalArgumentException e) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
-        }
-    }
-
-    private String normalizeRequestedType(String epiTypeParam, ValidationMode mode) {
+    private String normalizeRequestedType(String epiTypeParam) {
         String requested = epiTypeParam == null || epiTypeParam.isBlank()
                 ? TypeResolution.AUTO
                 : epiTypeParam.toLowerCase(Locale.ROOT);
@@ -214,24 +121,20 @@ public class ValidationService {
             } catch (IllegalArgumentException e) {
                 throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
             }
-        } else if (mode == ValidationMode.GATE) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "validationMode=gate requires an explicit epiType (1|2|3); epiType=auto is for "
-                            + "exploratory validation, diagnostics, demos, and malformed inbound triage");
         }
         return requested;
     }
 
-    private Bundle parseBundle(String raw, Request request, ValidationMode mode, IgConfig igConfig) {
-        boolean xml = request.contentType() != null
-                && request.contentType().toLowerCase(Locale.ROOT).contains("xml");
+    private Bundle parseBundle(String raw, String contentType, String requestedType,
+                               byte[] body, String traceId) {
+        boolean xml = contentType != null && contentType.toLowerCase(Locale.ROOT).contains("xml");
         IParser parser = xml ? fhirContext.newXmlParser() : fhirContext.newJsonParser();
         Resource resource;
         try {
             resource = (Resource) parser.parseResource(raw);
         } catch (DataFormatException e) {
             throw new UnparseableRequestException(
-                    parserFailureEnvelope(request, mode, igConfig, e), e.getMessage());
+                    parserFailureEnvelope(requestedType, body, traceId, e), e.getMessage());
         }
         if (!(resource instanceof Bundle bundle)) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY,
@@ -240,103 +143,64 @@ public class ValidationService {
         return bundle;
     }
 
-    private ValidationResponse parserFailureEnvelope(Request request, ValidationMode mode, IgConfig igConfig,
+    private ValidationResponse parserFailureEnvelope(String requestedType, byte[] body, String traceId,
                                                      DataFormatException cause) {
-        NormalizedIssue issue = new NormalizedIssue(
-                IssueSeverity.FATAL,
-                "invalid",
-                "PARSE-001",
-                IssueLayer.PARSER,
-                new NormalizedIssue.Location(null, null, null, null),
-                "Request body is not parseable FHIR: " + cause.getMessage(),
-                null,
-                new NormalizedIssue.Source(NormalizedIssue.Source.TYPE_PARSER, "hapi-fhir-parser",
-                        ca.uhn.fhir.util.VersionUtil.getVersion()),
-                false,
-                null,
-                null);
-        List<NormalizedIssue> issues = List.of(issue);
+        Issue issue = new Issue(IssueSeverity.FATAL, Issue.SOURCE_PARSER, "PARSE-001",
+                "Request body is not parseable FHIR: " + cause.getMessage(), null, null, null);
+        OperationOutcome outcome = new OperationOutcome();
+        OperationOutcome.OperationOutcomeIssueComponent component = outcome.addIssue();
+        component.setSeverity(OperationOutcome.IssueSeverity.FATAL);
+        component.setCode(OperationOutcome.IssueType.INVALID);
+        component.setDiagnostics(issue.message());
         return new ValidationResponse(
                 Verdict.FAIL,
-                mode,
-                igConfig.id(),
-                request.epiTypeParam() == null ? TypeResolution.AUTO : request.epiTypeParam(),
+                requestedType,
                 EpiType.UNKNOWN,
                 EpiType.UNKNOWN,
                 List.of(),
-                ValidationStats.of(issues, 0),
-                issues,
-                request.traceId(),
-                buildAudit(request, mode, igConfig, null),
-                null);
+                List.of(issue),
+                toJsonNode(fhirContext.newJsonParser().encodeResourceToString(outcome)),
+                sha256Hex(body),
+                traceId,
+                validatorInfo);
     }
 
-    private AuditInfo buildAudit(Request request, ValidationMode mode, IgConfig igConfig, String encodedOutcome) {
-        var packageEntry = manifestService.entryForTargetFile(igConfig.igPackage());
-        return new AuditInfo(
-                manifestService.manifestSha256(),
-                manifestService.manifest().hapiVersion(),
-                packageEntry == null
-                        ? new AuditInfo.IgPackageRef(null, igConfig.id(), null)
-                        : new AuditInfo.IgPackageRef(packageEntry.id(), packageEntry.version(), packageEntry.sha256()),
-                policyEngine.activePacks().stream()
-                        .map(p -> new AuditInfo.PolicyPackRef(p.id(), p.version()))
-                        .toList(),
-                warningPolicy.mode().wireValue(),
-                mode,
-                new AuditInfo.InputRef(
-                        ManifestService.sha256Hex(request.body()),
-                        request.contentType(),
-                        request.body().length),
-                encodedOutcome == null ? null : ManifestService.sha256Hex(encodedOutcome));
-    }
-
-    private OperationOutcome buildOperationOutcome(ValidationResult result, List<NormalizedIssue> allIssues) {
-        // Start from HAPI's OperationOutcome (carries line/col extensions), then append the
-        // policy-layer issues so the OO is complete across all layers.
+    private OperationOutcome buildOperationOutcome(ValidationResult result, List<Issue> issues) {
+        // HAPI's OperationOutcome carries line/col extensions; append the simple-check issues
+        // so the OperationOutcome covers the whole run.
         OperationOutcome outcome = (OperationOutcome) result.toOperationOutcome();
-        allIssues.stream()
-                .filter(i -> i.layer() == IssueLayer.POLICY)
-                .forEach(i -> outcome.addIssue(toOutcomeIssue(i)));
+        issues.stream()
+                .filter(i -> Issue.SOURCE_SIMPLE_CHECK.equals(i.source()))
+                .forEach(i -> {
+                    OperationOutcome.OperationOutcomeIssueComponent component = outcome.addIssue();
+                    component.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+                    component.setCode(OperationOutcome.IssueType.BUSINESSRULE);
+                    component.setDiagnostics(i.message() + " [" + i.ruleId() + "]");
+                    if (i.fhirPath() != null) {
+                        component.addExpression(i.fhirPath());
+                    }
+                });
         return outcome;
     }
 
-    private OperationOutcome.OperationOutcomeIssueComponent toOutcomeIssue(NormalizedIssue issue) {
-        OperationOutcome.OperationOutcomeIssueComponent component =
-                new OperationOutcome.OperationOutcomeIssueComponent();
-        component.setSeverity(switch (issue.severity()) {
-            case FATAL -> OperationOutcome.IssueSeverity.FATAL;
-            case ERROR -> OperationOutcome.IssueSeverity.ERROR;
-            case WARNING -> OperationOutcome.IssueSeverity.WARNING;
-            case INFORMATION -> OperationOutcome.IssueSeverity.INFORMATION;
-        });
-        component.setCode(issue.layer() == IssueLayer.POLICY
-                ? OperationOutcome.IssueType.BUSINESSRULE
-                : OperationOutcome.IssueType.PROCESSING);
-        component.setDiagnostics(issue.message()
-                + (issue.ruleId() != null ? " [" + issue.ruleId() + "]" : ""));
-        if (issue.location() != null && issue.location().fhirPath() != null) {
-            component.addExpression(issue.location().fhirPath());
-        }
-        return component;
-    }
-
-    private JsonNode toJsonNode(String encodedOutcome) {
+    private JsonNode toJsonNode(String encoded) {
         try {
-            return objectMapper.readTree(encodedOutcome);
+            return objectMapper.readTree(encoded);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to embed OperationOutcome", e);
         }
     }
 
-    private void recordMetrics(String igId, ValidationMode mode, EpiType effectiveType,
-                               Verdict verdict, long durationMillis) {
-        Timer.builder("epi.validation.duration")
-                .tag("igVersion", igId)
-                .tag("mode", mode.wireValue())
-                .tag("epiType", effectiveType.wireValue())
-                .tag("verdict", verdict.name())
-                .register(meterRegistry)
-                .record(durationMillis, TimeUnit.MILLISECONDS);
+    static String sha256Hex(byte[] bytes) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 unavailable", e);
+        }
+    }
+
+    /** Exposed for the info endpoint. */
+    public ValidatorInfo validatorInfo() {
+        return validatorInfo;
     }
 }

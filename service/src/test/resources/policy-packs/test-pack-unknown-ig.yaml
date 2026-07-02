@@ -1,8 +1,0 @@
-id: test-pack-unknown-ig
-version: 1.0.0
-appliesTo: ["does-not-exist"]
-rules:
-  - ruleId: TEST-001
-    severity: error
-    configurable: false
-    rationale: "This pack applies to an IG id that is not configured"

@@ -6,31 +6,11 @@ services:
     image: epi-validator:local
     ports:
       - "8080:8080"
-    # Two warmed IG chains + terminology need real memory; do not undersize (see docs)
+    # Terminology + profile snapshots need real memory; do not undersize
     mem_limit: 2g
-    environment:
-      # Production posture example — flip these in real deployments:
-      # EPI_VALIDATION_DEFAULTVALIDATIONMODE: gate
-      # EPI_VALIDATION_WARNINGPOLICY_MODE: fail-unless-allowlisted
-      EPI_VALIDATION_MAXCONCURRENTVALIDATIONS: "8"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
       start_period: 180s
       interval: 10s
       timeout: 3s
       retries: 6
-
-  # Agentic-loop demo: docker compose --profile demo up --exit-code-from demo
-  demo:
-    image: python:3.12-slim
-    profiles: ["demo"]
-    depends_on:
-      epi-validator:
-        condition: service_healthy
-    volumes:
-      - ./clients/python:/work/clients/python:ro
-      - ./examples:/work/examples:ro
-    working_dir: /work
-    command: >
-      sh -c "pip install -q /work/clients/python &&
-             python examples/pipeline_demo.py --base-url http://epi-validator:8080"

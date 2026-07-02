@@ -1,0 +1,132 @@
+{
+ "resourceType": "Bundle",
+ "id": "bundlepackageleaflet75type1",
+ "meta": {
+  "versionId": "1",
+  "lastUpdated": "2018-06-23T08:38:00+02:00",
+  "profile": [
+   "http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Bundle-uv-epi"
+  ]
+ },
+ "language": "en",
+ "identifier": {
+  "system": "https://www.gravitatehealth.eu/sid/doc",
+  "value": "EU/1/01/001/001"
+ },
+ "type": "document",
+ "timestamp": "2018-06-23T08:38:00+02:00",
+ "entry": [
+  {
+   "fullUrl": "urn:uuid:5467a2fd-2463-4ec7-a6bb-b7322000f867",
+   "resource": {
+    "resourceType": "Composition",
+    "id": "5467a2fd-2463-4ec7-a6bb-b7322000f867",
+    "meta": {
+     "profile": [
+      "http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Composition-uv-epi"
+     ]
+    },
+    "language": "en",
+    "text": {
+     "status": "generated",
+     "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\"><p><b>Generated Narrative: Composition</b><a name=\"5467a2fd-2463-4ec7-a6bb-b7322000f867\"> </a></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource Composition &quot;5467a2fd-2463-4ec7-a6bb-b7322000f867&quot;  (Language &quot;en&quot;) </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Composition-uv-epi.html\">Composition (ePI)</a></p></div><p><b>identifier</b>: id:\u00a0224b31c5-8e48-45c5-b616-29e902642578</p><p><b>status</b>: final</p><p><b>type</b>: Package Leaflet <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (example.org#100000155538)</span></p><p><b>date</b>: 2022-02-16 13:28:17+0000</p><p><b>author</b>: See above (Organization/d71bf884-90eb-47f9-81b7-fa81ecec7e75)</p><p><b>title</b>: Example of Type 1 ePI - DrugX (acetaminophen) 75 mg tablets</p></div>"
+    },
+    "identifier": [
+     {
+      "system": "https://spor.ema.europa.eu",
+      "value": "224b31c5-8e48-45c5-b616-29e902642578"
+     }
+    ],
+    "status": "final",
+    "type": {
+     "coding": [
+      {
+       "system": "http://example.org",
+       "code": "100000155538",
+       "display": "Package Leaflet"
+      }
+     ]
+    },
+    "subject": [
+     {
+      "identifier": {
+       "system": "http://example.org/sid/product",
+       "value": "medicinalproduct75"
+      }
+     }
+    ],
+    "date": "2022-02-16T13:28:17Z",
+    "author": [
+     {
+      "reference": "Organization/lost-in-extraction"
+     }
+    ],
+    "title": "Example of Type 1 ePI - DrugX (acetaminophen) 75 mg tablets",
+    "section": [
+     {
+      "title": "B. Package Leaflet",
+      "code": {
+       "coding": [
+        {
+         "system": "http://example.org",
+         "code": "200000029894",
+         "display": "PACKAGE LEAFLET"
+        }
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "fullUrl": "urn:uuid:d71bf884-90eb-47f9-81b7-fa81ecec7e75",
+   "resource": {
+    "resourceType": "Organization",
+    "id": "d71bf884-90eb-47f9-81b7-fa81ecec7e75",
+    "meta": {
+     "profile": [
+      "http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Organization-uv-epi"
+     ]
+    },
+    "text": {
+     "status": "generated",
+     "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: Organization</b><a name=\"d71bf884-90eb-47f9-81b7-fa81ecec7e75\"> </a></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource Organization &quot;d71bf884-90eb-47f9-81b7-fa81ecec7e75&quot; </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Organization-uv-epi.html\">Organization (ePI)</a></p></div><p><b>identifier</b>: id:\u00a0ORG1\u00a0(use:\u00a0OFFICIAL)</p><p><b>active</b>: true</p><p><b>type</b>: Marketing authorisation holder <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (example.org#220000000034)</span></p><p><b>name</b>: acme inc</p><h3>Contacts</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Address</b></td></tr><tr><td style=\"display: none\">*</td><td>54, Yonge Street, Paris, France(WORK)</td></tr></table></div>"
+    },
+    "identifier": [
+     {
+      "use": "official",
+      "system": "http://example.org/sid/org",
+      "value": "ORG1"
+     }
+    ],
+    "active": true,
+    "type": [
+     {
+      "coding": [
+       {
+        "system": "http://example.org",
+        "code": "220000000034",
+        "display": "Marketing authorisation holder"
+       }
+      ]
+     }
+    ],
+    "name": "acme inc",
+    "contact": [
+     {
+      "address": {
+       "use": "work",
+       "type": "physical",
+       "text": "54, Yonge Street, Paris, France",
+       "line": [
+        "54, Yonge Street"
+       ],
+       "city": "Paris",
+       "country": "FR"
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

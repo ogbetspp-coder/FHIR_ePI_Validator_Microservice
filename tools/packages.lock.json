@@ -1,5 +1,5 @@
 {
-  "_comment": "Source of truth for vendored FHIR IG packages. Every entry is SHA-256-pinned; vendor-packages.sh downloads/verifies against this file. Refreshing a pin (especially the ePI 1.1.0 CI snapshot, which drifts daily on build.fhir.org) is a deliberate, reviewed change: run tools/vendor-packages.sh --refresh <name>, re-run the full test suite, and commit lockfile + .tgz together.",
+  "_comment": "Source of truth for the vendored FHIR IG packages. Every entry is SHA-256-pinned; vendor-packages.sh downloads/verifies against this file (--verify runs offline in CI). Refreshing a pin is a deliberate, reviewed change: run tools/vendor-packages.sh --refresh <name>, update this file by hand, re-run the test suite, and commit lockfile + .tgz together.",
   "packageDir": "service/src/main/resources/packages",
   "packages": [
     {
@@ -12,17 +12,6 @@
       "packageDate": "20230726132927",
       "vendoredAt": "2026-07-02",
       "notes": "Published STU1. Declares deps hl7.terminology.r5#5.0.0, hl7.fhir.uv.extensions.r5#1.0.0."
-    },
-    {
-      "name": "hl7.fhir.uv.emedicinal-product-info",
-      "version": "1.1.0-cibuild-20260701",
-      "fhirVersion": "5.0.0",
-      "url": "https://build.fhir.org/ig/HL7/emedicinal-product-info/package.tgz",
-      "sha256": "ed627dd8847586b8c7f2f0d4ee84eef1642aab19b19cdd0071f2a5223cc82fff",
-      "targetFile": "hl7.fhir.uv.emedicinal-product-info-1.1.0-cibuild-20260701.tgz",
-      "packageDate": "20260701130950",
-      "vendoredAt": "2026-07-02",
-      "notes": "CI-build snapshot (Global Core ePI, trial-use). NOT an authorized HL7 publication; the source URL serves changing content — the SHA-256 pin freezes this snapshot. Declares deps hl7.terminology.r5#7.2.0, hl7.fhir.uv.extensions.r5#5.3.0. Defines bundle-epi-type1/2/3 profiles."
     },
     {
       "name": "hl7.terminology.r5",
@@ -45,28 +34,6 @@
       "packageDate": "20230326084631",
       "vendoredAt": "2026-07-02",
       "notes": "Dependency of ePI 1.0.0."
-    },
-    {
-      "name": "hl7.terminology.r5",
-      "version": "7.2.0",
-      "fhirVersion": "5.0.0",
-      "url": "https://packages2.fhir.org/packages/hl7.terminology.r5/7.2.0",
-      "sha256": "c4140555dc9a7093adb686d56c4a8e58fc6e7b40a96f8345afa0c209674fe536",
-      "targetFile": "hl7.terminology.r5-7.2.0.tgz",
-      "packageDate": "",
-      "vendoredAt": "2026-07-02",
-      "notes": "Dependency of ePI 1.1.0 CI snapshot. extensions.r5#5.3.0 declares hl7.terminology.r5#7.1.0; the IG's own pin (7.2.0) wins — one THO version per chain."
-    },
-    {
-      "name": "hl7.fhir.uv.extensions.r5",
-      "version": "5.3.0",
-      "fhirVersion": "5.0.0",
-      "url": "https://packages2.fhir.org/packages/hl7.fhir.uv.extensions.r5/5.3.0",
-      "sha256": "f1039cac888d79ebd29878d7debe5e647ffe7ed962a9033da095258a03a06105",
-      "targetFile": "hl7.fhir.uv.extensions.r5-5.3.0.tgz",
-      "packageDate": "",
-      "vendoredAt": "2026-07-02",
-      "notes": "Dependency of ePI 1.1.0 CI snapshot."
     }
   ]
 }

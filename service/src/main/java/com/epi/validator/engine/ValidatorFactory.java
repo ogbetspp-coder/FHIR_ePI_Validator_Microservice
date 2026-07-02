@@ -3,85 +3,67 @@ package com.epi.validator.engine;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.support.DefaultProfileValidationSupport;
 import ca.uhn.fhir.context.support.IValidationSupport;
+import ca.uhn.fhir.util.VersionUtil;
 import ca.uhn.fhir.validation.FhirValidator;
+import ca.uhn.fhir.validation.ValidationOptions;
 import com.epi.validator.config.EpiValidationProperties;
-import com.epi.validator.config.EpiValidationProperties.IgConfig;
+import com.epi.validator.model.ValidatorInfo;
 import org.hl7.fhir.common.hapi.validation.support.CommonCodeSystemsTerminologyService;
 import org.hl7.fhir.common.hapi.validation.support.InMemoryTerminologyServerValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.NpmPackageValidationSupport;
-import org.hl7.fhir.common.hapi.validation.support.RemoteTerminologyServiceValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.SnapshotGeneratingValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.UnknownCodeSystemWarningValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.ValidationSupportChain;
 import org.hl7.fhir.common.hapi.validation.validator.FhirInstanceValidator;
 import org.hl7.fhir.r5.utils.validation.constants.BestPracticeWarningLevel;
+import org.hl7.fhir.utilities.npm.NpmPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
- * Builds one fully isolated validation chain per IG version.
- *
- * <p><b>Invariant: never merge IG versions into one chain.</b> ePI 1.0.0 and the 1.1.0 CI
- * snapshot define StructureDefinitions under the same canonical base
- * ({@code http://hl7.org/fhir/uv/emedicinal-product-info/...}); a merged chain would resolve
- * profiles across versions non-deterministically.
+ * Builds THE validation chain: the official HAPI/HL7 validator engine over the vendored,
+ * SHA-256-pinned ePI IG package. Fully offline — no network at build or runtime.
  */
-@Component
+@Configuration(proxyBeanMethods = false)
 public class ValidatorFactory {
 
     private static final Logger log = LoggerFactory.getLogger(ValidatorFactory.class);
+    static final String FHIR_VERSION = "5.0.0";
 
-    private final FhirContext fhirContext;
-    private final PackageSetLoader packageSetLoader;
-    private final EpiValidationProperties properties;
-
-    public ValidatorFactory(FhirContext fhirContext,
-                            PackageSetLoader packageSetLoader,
-                            EpiValidationProperties properties) {
-        this.fhirContext = fhirContext;
-        this.packageSetLoader = packageSetLoader;
-        this.properties = properties;
-    }
-
-    public IgRuntime buildFor(IgConfig config) {
+    @Bean
+    public FhirValidator fhirValidator(FhirContext fhirContext, EpiValidationProperties properties)
+            throws IOException {
         long start = System.currentTimeMillis();
-        NpmPackageValidationSupport npm = packageSetLoader.loadValidationSupport(config);
+        NpmPackageValidationSupport npm = new NpmPackageValidationSupport(fhirContext);
+        for (String location : packageLocations(properties)) {
+            npm.loadPackageFromClasspath("classpath:" + location);
+        }
 
+        // ePI content references code systems with no distributable offline representation
+        // (EDQM Standard Terms, MedDRA, WHO ATC, EMA SPOR). Downgrade unknown code systems to
+        // warnings or offline validation would hard-fail every real-world ePI.
         UnknownCodeSystemWarningValidationSupport unknownCodeSystems =
                 new UnknownCodeSystemWarningValidationSupport(fhirContext);
-        // ePI content references code systems with no distributable offline representation
-        // (EDQM Standard Terms, MedDRA, WHO ATC). Without this downgrade, offline mode would
-        // hard-fail every real-world ePI on codes nobody can validate locally. A remote
-        // terminology server restores strictness where deployed.
-        unknownCodeSystems.setNonExistentCodeSystemSeverity(
-                "error".equalsIgnoreCase(properties.unknownCodeSystemSeverity())
-                        ? IValidationSupport.IssueSeverity.ERROR
-                        : IValidationSupport.IssueSeverity.WARNING);
+        unknownCodeSystems.setNonExistentCodeSystemSeverity(IValidationSupport.IssueSeverity.WARNING);
 
-        List<IValidationSupport> modules = new ArrayList<>();
-        modules.add(npm);
-        modules.add(new DefaultProfileValidationSupport(fhirContext));
-        modules.add(new CommonCodeSystemsTerminologyService(fhirContext));
-        if (properties.remoteTerminology() != null && properties.remoteTerminology().enabled()) {
-            RemoteTerminologyServiceValidationSupport remote =
-                    new RemoteTerminologyServiceValidationSupport(fhirContext, properties.remoteTerminology().url());
-            modules.add(remote);
-            log.info("Remote terminology enabled: {}", properties.remoteTerminology().url());
-        }
-        modules.add(new InMemoryTerminologyServerValidationSupport(fhirContext));
-        modules.add(new SnapshotGeneratingValidationSupport(fhirContext));
-        modules.add(unknownCodeSystems);
-
-        // ValidationSupportChain's built-in cache replaces the deprecated CachingValidationSupport.
         ValidationSupportChain chain = new ValidationSupportChain(
                 ValidationSupportChain.CacheConfiguration.defaultValues(),
-                modules.toArray(IValidationSupport[]::new));
+                npm,
+                new DefaultProfileValidationSupport(fhirContext),
+                new CommonCodeSystemsTerminologyService(fhirContext),
+                new InMemoryTerminologyServerValidationSupport(fhirContext),
+                new SnapshotGeneratingValidationSupport(fhirContext),
+                unknownCodeSystems);
 
         FhirInstanceValidator module = new FhirInstanceValidator(chain);
         module.setErrorForUnknownProfiles(true);
@@ -89,19 +71,48 @@ public class ValidatorFactory {
 
         FhirValidator validator = fhirContext.newValidator();
         validator.registerValidatorModule(module);
-        if (properties.concurrentBundleValidation()) {
-            // Off by default in the first production cut: bundle-level concurrency stacks with the
-            // request bulkhead and platform concurrency; enable only with sized capacity planning.
-            ExecutorService executor = Executors.newFixedThreadPool(
-                    Math.max(2, Runtime.getRuntime().availableProcessors() / 2));
-            validator.setConcurrentBundleValidation(true);
-            validator.setExecutorService(executor);
-            log.info("Concurrent bundle validation enabled for IG {}", config.id());
-        }
+        log.info("Validation chain built in {} ms", System.currentTimeMillis() - start);
+        return validator;
+    }
 
-        List<IgPackageMetadata> metadata = packageSetLoader.loadMetadata(config);
-        log.info("Validator chain for IG {} built in {} ms ({} packages)",
-                config.id(), System.currentTimeMillis() - start, metadata.size());
-        return new IgRuntime(config, validator, metadata);
+    @Bean
+    public ValidatorInfo validatorInfo(EpiValidationProperties properties) throws IOException {
+        try (InputStream in = new ClassPathResource(properties.igPackage()).getInputStream()) {
+            NpmPackage pkg = NpmPackage.fromPackage(in);
+            return new ValidatorInfo(FHIR_VERSION, VersionUtil.getVersion(), pkg.name(), pkg.version());
+        }
+    }
+
+    /**
+     * Warm-up validation forces snapshot generation and cache priming (~30-60 s). Spring Boot
+     * flips readiness to ACCEPTING_TRAFFIC only after ApplicationRunners complete, so the
+     * service is never ready before the validator is.
+     */
+    @Bean
+    public ApplicationRunner validatorWarmup(FhirValidator validator, EpiValidationProperties properties) {
+        return args -> {
+            ClassPathResource warmup = new ClassPathResource("warmup/warmup-bundle.json");
+            if (!warmup.exists()) {
+                log.warn("No warmup/warmup-bundle.json; first live validation pays the snapshot cost");
+                return;
+            }
+            String raw = new String(warmup.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            long start = System.currentTimeMillis();
+            var result = validator.validateWithResult(raw,
+                    new ValidationOptions().addProfile(properties.bundleProfile()));
+            log.info("Warm-up validation took {} ms ({} messages)",
+                    System.currentTimeMillis() - start, result.getMessages().size());
+        };
+    }
+
+    private static List<String> packageLocations(EpiValidationProperties properties) {
+        // NpmPackageValidationSupport does NOT resolve package dependencies: the IG package and
+        // every declared dependency must be listed explicitly in configuration.
+        List<String> locations = new ArrayList<>();
+        locations.add(properties.igPackage());
+        if (properties.dependencyPackages() != null) {
+            locations.addAll(properties.dependencyPackages());
+        }
+        return locations;
     }
 }

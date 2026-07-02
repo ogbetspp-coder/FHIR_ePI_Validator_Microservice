@@ -22,53 +22,33 @@ jobs:
         run: mvn -B -f service/pom.xml verify
         env:
           MAVEN_OPTS: -Xmx2g
-      - name: Upload SBOM (CycloneDX)
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: service/target/bom.*
-          if-no-files-found: warn
-
-  python:
-    name: Client SDK (ruff + pytest)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install client with dev extras
-        run: pip install -e 'clients/python[dev]'
-      - name: Lint
-        run: ruff check --config clients/python/pyproject.toml clients/python/src clients/python/tests examples
-      - name: Test
-        run: pytest -q clients/python/tests
 
   docker-smoke:
-    name: Container smoke (compose + demo loop)
+    name: Container smoke
     runs-on: ubuntu-latest
-    needs: [java, python]
+    needs: [java]
     steps:
       - uses: actions/checkout@v4
-      - name: Build image
-        run: docker compose build epi-validator
-      - name: Start service and wait for readiness
-        run: docker compose up -d --wait epi-validator
-      - name: Gate an IG example (regulated mode)
+      - name: Build image and start service
+        run: docker compose up -d --wait
+      - name: Good bundle passes
         run: |
-          verdict=$(curl -sS -X POST 'http://localhost:8080/api/v1/epi/validate?validationMode=gate&epiType=2&igVersion=1.1.0&includeOperationOutcome=false' \
+          verdict=$(curl -sS -X POST 'http://localhost:8080/api/v1/epi/validate?epiType=1' \
             -H 'Content-Type: application/fhir+json' \
-            --data-binary @examples/bundles/1.1.0/Bundle-bundle-epi-type2-example-blister-carton.json | jq -r .verdict)
+            --data-binary @examples/good-bundle.json | jq -r .verdict)
           echo "verdict=$verdict"
-          test "$verdict" = "PASS_WITH_WARNINGS"
-      - name: Audit block is present
+          test "$verdict" = "PASS" -o "$verdict" = "PASS_WITH_WARNINGS"
+      - name: Broken bundle fails with located issues
         run: |
-          curl -sS -X POST 'http://localhost:8080/api/v1/epi/validate?validationMode=gate&epiType=2&igVersion=1.1.0&includeOperationOutcome=false' \
+          response=$(curl -sS -X POST 'http://localhost:8080/api/v1/epi/validate?epiType=1' \
             -H 'Content-Type: application/fhir+json' \
-            --data-binary @examples/bundles/1.1.0/Bundle-bundle-epi-type2-example-blister-carton.json \
-            | jq -e '.audit.manifestSha256 | length == 64'
-      - name: Run the agentic demo loop in a container
-        run: docker compose --profile demo up --exit-code-from demo demo
+            --data-binary @examples/broken-bundle.json)
+          echo "$response" | jq -e '.verdict == "FAIL"'
+          echo "$response" | jq -e '[.issues[].ruleId] | index("EPI-DOC-003") != null'
+      - name: Example script follows the verdict
+        run: |
+          python3 examples/validate_bundle.py examples/good-bundle.json --epi-type 1
+          ! python3 examples/validate_bundle.py examples/broken-bundle.json --epi-type 1
       - name: Service logs on failure
         if: failure()
         run: docker compose logs epi-validator | tail -100

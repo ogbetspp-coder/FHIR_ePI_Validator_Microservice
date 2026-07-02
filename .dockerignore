@@ -1,11 +1,5 @@
 .git
 **/target
 **/__pycache__
-**/*.egg-info
 **/.pytest_cache
-**/.ruff_cache
-**/.venv
-**/venv
-docs
 *.md
-!clients/python/README.md
