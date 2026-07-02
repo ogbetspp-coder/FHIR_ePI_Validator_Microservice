@@ -15,6 +15,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -72,6 +76,44 @@ public class GzipRequestFilter extends OncePerRequestFilter {
         @Override
         public long getContentLengthLong() {
             return gzip ? -1 : super.getContentLengthLong();
+        }
+
+        // The original Content-Length describes the COMPRESSED body. It must be masked from
+        // the header view too, or Spring's message converters truncate the inflated stream
+        // at the compressed length (readNBytes(contentLength)).
+        private boolean masked(String name) {
+            return gzip && ("content-length".equalsIgnoreCase(name) || "content-encoding".equalsIgnoreCase(name));
+        }
+
+        @Override
+        public String getHeader(String name) {
+            return masked(name) ? null : super.getHeader(name);
+        }
+
+        @Override
+        public Enumeration<String> getHeaders(String name) {
+            return masked(name) ? Collections.emptyEnumeration() : super.getHeaders(name);
+        }
+
+        @Override
+        public int getIntHeader(String name) {
+            return masked(name) ? -1 : super.getIntHeader(name);
+        }
+
+        @Override
+        public Enumeration<String> getHeaderNames() {
+            if (!gzip) {
+                return super.getHeaderNames();
+            }
+            List<String> names = new ArrayList<>();
+            Enumeration<String> original = super.getHeaderNames();
+            while (original.hasMoreElements()) {
+                String name = original.nextElement();
+                if (!masked(name)) {
+                    names.add(name);
+                }
+            }
+            return Collections.enumeration(names);
         }
     }
 

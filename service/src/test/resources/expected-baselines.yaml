@@ -1,0 +1,52 @@
+# Committed expectations for the IG's own example bundles, validated in gate mode with the
+# matching epiType against the pinned packages (HAPI 8.10.0, warning-policy pass-with-warnings).
+#
+# The IG examples are NOT clean against their own profiles: STU1 examples carry unresolvable
+# narrative hyperlinks, bundle-unreachable entries, and dangling relative references (counted
+# by both the profile validator and policy rule EPI-DOC-005). These are defects of the
+# published examples, recorded here deliberately.
+#
+# If a count changes: a vendored package was refreshed, the engine version moved, or a rule
+# changed. Review the cause; never bump numbers blindly.
+"1.0.0":
+  Bundle-bundlepackageleaflet75type1.json:
+    epiType: "1"
+    errors: 4
+    warnings: 10
+    verdict: FAIL
+  Bundle-bundlepackageleaflet75type2.json:
+    epiType: "2"
+    errors: 106
+    warnings: 12
+    verdict: FAIL
+  Bundle-bundlepackageleaflet75type3.json:
+    epiType: "3"
+    errors: 126
+    warnings: 12
+    verdict: FAIL
+"1.1.0":
+  Bundle-bundle-epi-type1-example-paracetamol.json:
+    epiType: "1"
+    errors: 2
+    warnings: 16
+    verdict: FAIL
+  Bundle-bundle-epi-type2-example-blister-carton.json:
+    epiType: "2"
+    errors: 0
+    warnings: 26
+    verdict: PASS_WITH_WARNINGS
+  Bundle-bundle-epi-type2-example-paracetamol.json:
+    epiType: "2"
+    errors: 2
+    warnings: 35
+    verdict: FAIL
+  Bundle-bundle-epi-type3-example-diflucan.json:
+    epiType: "3"
+    errors: 1
+    warnings: 4
+    verdict: FAIL
+  Bundle-bundle-epi-type3-example-wonderdrug.json:
+    epiType: "3"
+    errors: 13
+    warnings: 93
+    verdict: FAIL

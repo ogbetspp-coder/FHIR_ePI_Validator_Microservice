@@ -1,0 +1,8 @@
+id: test-pack-bad-severity
+version: 1.0.0
+appliesTo: ["1.0.0"]
+rules:
+  - ruleId: TEST-001
+    severity: catastrophic
+    configurable: false
+    rationale: "Severity is not one of error|warning|information"

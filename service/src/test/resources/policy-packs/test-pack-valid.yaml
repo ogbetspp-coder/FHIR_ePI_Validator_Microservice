@@ -1,0 +1,12 @@
+id: test-pack-valid
+version: 9.9.9
+appliesTo: ["1.0.0"]
+rules:
+  - ruleId: TEST-001
+    severity: error
+    configurable: false
+    rationale: "Test rule one exists for startup-validation tests"
+  - ruleId: TEST-002
+    severity: warning
+    configurable: true
+    rationale: "Test rule two exists for startup-validation tests"
