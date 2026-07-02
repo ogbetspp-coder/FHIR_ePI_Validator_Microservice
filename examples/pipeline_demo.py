@@ -41,7 +41,10 @@ from pathlib import Path
 
 from epi_validator_client import EpiValidatorClient, GateFailed, ValidationResult, gate
 
-EXAMPLE = Path(__file__).parent / "bundles" / "1.1.0" / "Bundle-bundle-epi-type2-example-blister-carton.json"
+EXAMPLE = (
+    Path(__file__).parent / "bundles" / "1.1.0"
+    / "Bundle-bundle-epi-type2-example-blister-carton.json"
+)
 
 
 def seed_defects(bundle: dict) -> tuple[dict, dict]:
