@@ -128,6 +128,36 @@ Auth is left to the platform (IAM/ingress) by design.
   reference (`EPI-DOC-003`).
 - `examples/validate_bundle.py` — dependency-free client; exit code follows the verdict.
 
+## Development & handover
+
+```bash
+make build                 # mvn verify — 64 tests (unit + integration), fully offline
+make run                   # run locally on :8080
+make docker                # build the container image
+tools/vendor-packages.sh --verify   # confirm the vendored packages match the SHA-256 lockfile
+```
+
+Layout: the Spring Boot service is under `service/` (base package `com.epi.validator`;
+`engine/` = validation chain + type resolution, `checks/` = the five sanity rules, `web/` =
+controllers, filters, body decoding, `service/` = orchestration). IG packages and their
+SHA-256 lockfile live in `service/src/main/resources/packages/` and `tools/`.
+
+**Cross-check against the official HL7 validator.** CI runs the reference
+`org.hl7.fhir.validation` engine (behind validator.fhir.org / `validator_cli`), pinned to the
+same core version this service embeds, against the example bundles and asserts it reaches the
+**same verdict** as the gate (with terminology and example-URL policy aligned). Run it locally:
+
+```bash
+mvn -f service/pom.xml -Dcrosscheck=true test-compile failsafe:integration-test \
+  -Dit.test=OfficialValidatorCrossCheckIT
+```
+
+**Refreshing a pinned package** is a deliberate, reviewed change — see
+[`tools/vendor-packages.sh`](tools/vendor-packages.sh) (`--refresh`) and the lockfile header.
+
+Security posture (air-gapped operation, input hardening, tested threat cases) is documented in
+[`SECURITY.md`](SECURITY.md). CI publishes a CycloneDX SBOM per build.
+
 ## Known limitations
 
 - Offline terminology: **codes are not verified against external terminologies** (SNOMED CT,

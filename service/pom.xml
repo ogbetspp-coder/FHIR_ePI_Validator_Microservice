@@ -85,6 +85,14 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Cross-check only: the official org.hl7.fhir.validation ValidationEngine (transitive via
+         HAPI) needs commons-collections4 at runtime, which the service itself does not use. -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -124,6 +132,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <!-- Headroom for the cross-check IT, which loads two validator contexts in one JVM. -->
+          <argLine>-Xmx3g</argLine>
+        </configuration>
         <executions>
           <execution>
             <goals>

@@ -22,6 +22,36 @@ jobs:
         run: mvn -B -f service/pom.xml verify
         env:
           MAVEN_OPTS: -Xmx2g
+      - name: Generate CycloneDX SBOM
+        run: mvn -B -f service/pom.xml org.cyclonedx:cyclonedx-maven-plugin:2.9.1:makeAggregateBom
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: service/target/bom.*
+          if-no-files-found: warn
+
+  cross-check:
+    name: Official HL7 validator cross-check
+    runs-on: ubuntu-latest
+    needs: [java]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      # Runs the official org.hl7.fhir.validation ValidationEngine (version-matched to the
+      # embedded engine) against the example bundles and asserts it reaches the same verdict as
+      # the service. Downloads the FHIR R5 core package, so it is a separate, network-enabled job.
+      - name: Cross-check verdicts against the official validator
+        run: >
+          mvn -B -f service/pom.xml -Dcrosscheck=true
+          test-compile failsafe:integration-test failsafe:verify
+          -Dit.test=OfficialValidatorCrossCheckIT
+        env:
+          MAVEN_OPTS: -Xmx1g
 
   docker-smoke:
     name: Container smoke
