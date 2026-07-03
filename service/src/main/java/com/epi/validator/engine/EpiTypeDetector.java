@@ -63,14 +63,16 @@ public class EpiTypeDetector {
     }
 
     public boolean hasType2Content(Bundle bundle) {
-        return bundle.getEntry().stream()
-                .filter(e -> e.getResource() != null)
-                .anyMatch(e -> TYPE_2_MARKERS.contains(e.getResource().fhirType()));
+        return hasAnyMarker(bundle, TYPE_2_MARKERS);
     }
 
     public boolean hasType3Content(Bundle bundle) {
+        return hasAnyMarker(bundle, TYPE_3_MARKERS);
+    }
+
+    private static boolean hasAnyMarker(Bundle bundle, Set<String> markers) {
         return bundle.getEntry().stream()
                 .filter(e -> e.getResource() != null)
-                .anyMatch(e -> TYPE_3_MARKERS.contains(e.getResource().fhirType()));
+                .anyMatch(e -> markers.contains(e.getResource().fhirType()));
     }
 }

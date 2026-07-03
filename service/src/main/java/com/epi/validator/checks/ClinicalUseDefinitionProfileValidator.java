@@ -65,10 +65,15 @@ public class ClinicalUseDefinitionProfileValidator {
             if (!(entries.get(i).getResource() instanceof ClinicalUseDefinition cud)) {
                 continue;
             }
-            String type = cud.hasType() ? cud.getType().toCode() : null;
-            String profile = PROFILE_BY_TYPE.get(type);
+            // getType() is null when the type primitive carries only an extension (e.g. a
+            // data-absent-reason) or an unparseable code, even though hasType() is true.
+            String type = cud.getType() != null ? cud.getType().toCode() : null;
+            if (type == null) {
+                continue; // value-absent/unparseable type: leave it to the required-binding check
+            }
+            String profile = PROFILE_BY_TYPE.get(type); // never get(null): Map.of throws on that
             if (profile == null) {
-                continue; // untyped, or a type outside the ePI sub-profile set
+                continue; // a type outside the ePI sub-profile set
             }
             String entryPath = "Bundle.entry[" + i + "].resource";
             String json = fhirContext.newJsonParser().encodeResourceToString(cud);
@@ -103,11 +108,12 @@ public class ClinicalUseDefinitionProfileValidator {
 
     /**
      * True for narrative hyperlink issues, which cannot resolve when a resource is validated
-     * outside its document and are already covered by the whole-bundle validation.
+     * outside its document and are already covered by the whole-bundle validation. Scoped to the
+     * narrative div so a real sub-profile error at some other {@code .text} leaf is not swallowed.
      */
     private static boolean isDocumentNarrative(SingleValidationMessage message) {
         String location = message.getLocationString() == null ? "" : message.getLocationString();
         String text = message.getMessage() == null ? "" : message.getMessage();
-        return location.contains(".text") || location.contains("div/") || text.startsWith("Hyperlink");
+        return location.contains(".text.div") || location.contains("div/") || text.startsWith("Hyperlink");
     }
 }

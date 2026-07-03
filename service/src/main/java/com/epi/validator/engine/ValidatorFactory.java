@@ -97,7 +97,10 @@ public class ValidatorFactory {
                 log.warn("No warmup/warmup-bundle.json; first live validation pays the snapshot cost");
                 return;
             }
-            String raw = new String(warmup.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            String raw;
+            try (InputStream in = warmup.getInputStream()) {
+                raw = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            }
             long start = System.currentTimeMillis();
             var result = validator.validateWithResult(raw,
                     new ValidationOptions().addProfile(properties.bundleProfile()));

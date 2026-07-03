@@ -26,10 +26,6 @@ management:
       probes:
         enabled: true      # /actuator/health/{liveness,readiness}; readiness flips after warmup
 
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-
 logging:
   pattern:
     console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%X{traceId:-}] %logger{36} - %msg%n"

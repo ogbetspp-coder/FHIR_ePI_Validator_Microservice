@@ -36,7 +36,7 @@ python3 examples/validate_bundle.py examples/good-bundle.json --epi-type 1
 ```
 
 Local development: `make build` (tests), `make run`, `make docker`.
-Swagger UI: `http://localhost:8080/swagger-ui.html`.
+OpenAPI spec (JSON): `http://localhost:8080/v3/api-docs`.
 
 ## API
 
@@ -52,7 +52,7 @@ Send a FHIR Bundle (document) as `application/fhir+json` or `application/fhir+xm
 The endpoint returns **HTTP 200 whenever validation ran**, whatever the verdict. Other status
 codes mean the request never reached validation: 400 unparseable body (you still get the envelope,
 verdict `FAIL`, one `parser` issue), 413 too large, 415 wrong media type, 422 not a Bundle or bad
-`epiType`, 503 still warming up.
+`epiType`.
 
 ```jsonc
 {
@@ -86,8 +86,9 @@ talking to?".
 
 ### `GET /actuator/health` (plus `/liveness`, `/readiness`)
 
-Readiness turns UP only after the IG package loads, snapshots generate, and a warm-up validation
-runs (about 30 to 60 seconds after start).
+Readiness (`/actuator/health/readiness`) returns 503 until the IG package loads, snapshots
+generate, and a warm-up validation runs (about 30 to 60 seconds after start). Orchestrators hold
+traffic until readiness passes.
 
 ## What it validates
 
@@ -142,8 +143,12 @@ Authentication is left to the platform (IAM and ingress) by design. See [SECURIT
 
 ## Development and handover
 
+Prerequisites: Docker for the container path; Java 21 and Maven 3.9+ for local Maven builds.
+Nothing else, and no network (the IG packages are vendored).
+
 ```bash
-make build                          # mvn verify: 70 offline tests (unit + integration)
+docker compose up --wait            # run it with zero local toolchain
+make build                          # local build + 71 offline tests (unit + integration)
 make run                            # run locally on :8080
 make docker                         # build the container image
 tools/vendor-packages.sh --verify   # confirm vendored packages match the SHA-256 lockfile

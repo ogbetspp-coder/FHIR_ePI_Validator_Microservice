@@ -358,4 +358,31 @@ class ValidateApiIT {
                 .as("base Bundle validation does NOT catch it; this is exactly the gap being closed")
                 .isFalse();
     }
+
+    @Test
+    void clinicalUseDefinitionWithValueAbsentTypeDoesNotCrash() throws IOException {
+        // A `type` primitive that carries only a data-absent-reason extension is valid FHIR:
+        // hasType() is true but getType() is null. Sub-profile enforcement must not NPE into a 500.
+        ObjectNode bundle = (ObjectNode) MAPPER.readTree(fixture("type3-example.json"));
+        boolean patched = false;
+        for (JsonNode entry : bundle.withArray("entry")) {
+            ObjectNode resource = (ObjectNode) entry.path("resource");
+            if ("ClinicalUseDefinition".equals(resource.path("resourceType").asText())) {
+                resource.remove("type");
+                ObjectNode dataAbsent = MAPPER.createObjectNode()
+                        .put("url", "http://hl7.org/fhir/StructureDefinition/data-absent-reason")
+                        .put("valueCode", "unknown");
+                resource.set("_type", MAPPER.createObjectNode()
+                        .set("extension", MAPPER.createArrayNode().add(dataAbsent)));
+                patched = true;
+                break;
+            }
+        }
+        assertThat(patched).as("fixture contains a ClinicalUseDefinition to patch").isTrue();
+
+        ResponseEntity<JsonNode> response =
+                post("/api/v1/epi/validate?epiType=3", bundle.toString(), new HttpHeaders());
+        assertThat(response.getStatusCode().value()).as("validation completes, no 500").isEqualTo(200);
+        assertThat(response.getBody().path("verdict").asText()).isNotBlank();
+    }
 }

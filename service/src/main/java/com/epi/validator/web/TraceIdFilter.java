@@ -59,11 +59,15 @@ public class TraceIdFilter extends OncePerRequestFilter {
                 return matcher.group(1);
             }
         }
-        return UUID.randomUUID().toString().replace("-", "");
+        return newTraceId();
     }
 
     public static String current(HttpServletRequest request) {
         Object value = request.getAttribute(ATTRIBUTE);
-        return value != null ? value.toString() : UUID.randomUUID().toString().replace("-", "");
+        return value != null ? value.toString() : newTraceId();
+    }
+
+    private static String newTraceId() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 }

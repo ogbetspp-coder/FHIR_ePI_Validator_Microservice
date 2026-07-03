@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record Issue(
         @Schema(description = "fatal | error | warning | information")
         IssueSeverity severity,
-        @Schema(description = "hapi-validator | simple-check | parser")
+        @Schema(description = "hapi-validator | simple-check | clinical-profile | parser")
         String source,
-        @Schema(description = "Validator message id or simple-check rule id (e.g. EPI-TYPE-001)")
+        @Schema(description = "Validator message id or check rule id (e.g. EPI-TYPE-001, EPI-CUD-PROFILE)")
         String ruleId,
         @Schema(description = "Human/LLM-readable defect message")
         String message,

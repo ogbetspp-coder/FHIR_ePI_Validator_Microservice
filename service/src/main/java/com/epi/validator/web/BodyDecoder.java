@@ -30,8 +30,19 @@ public final class BodyDecoder {
     }
 
     public static String decode(byte[] body, String contentType) {
-        Charset charset = charsetFromBom(body);
-        int offset = bomLength(body);
+        // A byte-order mark wins: it fixes both the charset and how many leading bytes to skip.
+        Charset charset = null;
+        int offset = 0;
+        if (startsWith(body, 0xEF, 0xBB, 0xBF)) {
+            charset = StandardCharsets.UTF_8;
+            offset = 3;
+        } else if (startsWith(body, 0xFE, 0xFF)) {
+            charset = StandardCharsets.UTF_16BE;
+            offset = 2;
+        } else if (startsWith(body, 0xFF, 0xFE)) {
+            charset = StandardCharsets.UTF_16LE;
+            offset = 2;
+        }
         if (charset == null) {
             charset = charsetFromContentType(contentType);
         }
@@ -53,28 +64,16 @@ public final class BodyDecoder {
         }
     }
 
-    private static Charset charsetFromBom(byte[] b) {
-        if (b.length >= 3 && (b[0] & 0xFF) == 0xEF && (b[1] & 0xFF) == 0xBB && (b[2] & 0xFF) == 0xBF) {
-            return StandardCharsets.UTF_8;
+    private static boolean startsWith(byte[] body, int... prefix) {
+        if (body.length < prefix.length) {
+            return false;
         }
-        if (b.length >= 2 && (b[0] & 0xFF) == 0xFE && (b[1] & 0xFF) == 0xFF) {
-            return StandardCharsets.UTF_16BE;
+        for (int i = 0; i < prefix.length; i++) {
+            if ((body[i] & 0xFF) != prefix[i]) {
+                return false;
+            }
         }
-        if (b.length >= 2 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xFE) {
-            return StandardCharsets.UTF_16LE;
-        }
-        return null;
-    }
-
-    private static int bomLength(byte[] b) {
-        if (b.length >= 3 && (b[0] & 0xFF) == 0xEF && (b[1] & 0xFF) == 0xBB && (b[2] & 0xFF) == 0xBF) {
-            return 3;
-        }
-        if (b.length >= 2 && ((b[0] & 0xFF) == 0xFE && (b[1] & 0xFF) == 0xFF
-                || (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xFE)) {
-            return 2;
-        }
-        return 0;
+        return true;
     }
 
     private static Charset charsetFromContentType(String contentType) {

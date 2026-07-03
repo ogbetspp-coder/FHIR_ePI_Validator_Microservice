@@ -74,8 +74,10 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     <dependency>
+      <!-- OpenAPI spec at /v3/api-docs. The -api starter (not -ui) keeps the machine-readable
+           contract without bundling the Swagger UI webjar. -->
       <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
       <version>${springdoc.version}</version>
     </dependency>
 

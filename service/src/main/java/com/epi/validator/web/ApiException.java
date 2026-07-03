@@ -2,7 +2,7 @@ package com.epi.validator.web;
 
 import org.springframework.http.HttpStatus;
 
-/** Request-level failure with a specific HTTP status (422 misuse, 503 not ready, ...). */
+/** Request-level failure with a specific HTTP status (400 unreadable, 413 too large, 422 misuse). */
 public class ApiException extends RuntimeException {
 
     private final HttpStatus status;
