@@ -15,10 +15,10 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * Correlation id for ALCOA+/Part-11-style traceability: accepted from {@code X-Trace-Id} or a
- * W3C {@code traceparent} header, else generated. Present in MDC (all log lines), the response
- * header, and the validation envelope. One id connects source document, extraction proposal,
- * candidate bundle, validation result, and approval across the pipeline.
+ * Correlation id for ALCOA+/Part-11-style traceability: accepted from the {@code X-Trace-Id}
+ * header (validated against a strict allowlist) or generated. Present in MDC (all log lines), the
+ * response header, and the validation envelope. One id connects source document, extraction
+ * proposal, candidate bundle, validation result, and approval across the pipeline.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -28,8 +28,6 @@ public class TraceIdFilter extends OncePerRequestFilter {
     public static final String ATTRIBUTE = TraceIdFilter.class.getName() + ".traceId";
     public static final String MDC_KEY = "traceId";
 
-    private static final Pattern TRACEPARENT =
-            Pattern.compile("^[0-9a-f]{2}-([0-9a-f]{32})-[0-9a-f]{16}-[0-9a-f]{2}$");
     private static final Pattern SAFE_ID = Pattern.compile("^[A-Za-z0-9._-]{1,128}$");
 
     @Override
@@ -51,13 +49,6 @@ public class TraceIdFilter extends OncePerRequestFilter {
         String explicit = request.getHeader(HEADER);
         if (explicit != null && SAFE_ID.matcher(explicit).matches()) {
             return explicit;
-        }
-        String traceparent = request.getHeader("traceparent");
-        if (traceparent != null) {
-            var matcher = TRACEPARENT.matcher(traceparent.trim().toLowerCase());
-            if (matcher.matches()) {
-                return matcher.group(1);
-            }
         }
         return newTraceId();
     }
