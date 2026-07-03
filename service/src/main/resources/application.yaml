@@ -1,7 +1,11 @@
 server:
   port: 8080
   tomcat:
-    max-swallow-size: -1   # large ePI payloads; the app enforces its own post-inflation cap
+    threads:
+      # Bound concurrent validations so load cannot exhaust the heap (the resident validator
+      # is ~1 GB; excess requests queue in the connector instead of running in parallel).
+      # Keep aligned with the platform's per-instance concurrency (e.g. Cloud Run --concurrency).
+      max: 16
 
 spring:
   application:

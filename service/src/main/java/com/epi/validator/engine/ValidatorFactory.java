@@ -27,8 +27,6 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Builds THE validation chain: the official HAPI/HL7 validator engine over the vendored,
@@ -45,8 +43,11 @@ public class ValidatorFactory {
             throws IOException {
         long start = System.currentTimeMillis();
         NpmPackageValidationSupport npm = new NpmPackageValidationSupport(fhirContext);
-        for (String location : packageLocations(properties)) {
-            npm.loadPackageFromClasspath("classpath:" + location);
+        // NpmPackageValidationSupport does NOT resolve package dependencies: load the IG package
+        // and every declared dependency explicitly, IG first.
+        npm.loadPackageFromClasspath("classpath:" + properties.igPackage());
+        for (String dependency : properties.dependencyPackages()) {
+            npm.loadPackageFromClasspath("classpath:" + dependency);
         }
 
         // ePI content references code systems with no distributable offline representation
@@ -103,16 +104,5 @@ public class ValidatorFactory {
             log.info("Warm-up validation took {} ms ({} messages)",
                     System.currentTimeMillis() - start, result.getMessages().size());
         };
-    }
-
-    private static List<String> packageLocations(EpiValidationProperties properties) {
-        // NpmPackageValidationSupport does NOT resolve package dependencies: the IG package and
-        // every declared dependency must be listed explicitly in configuration.
-        List<String> locations = new ArrayList<>();
-        locations.add(properties.igPackage());
-        if (properties.dependencyPackages() != null) {
-            locations.addAll(properties.dependencyPackages());
-        }
-        return locations;
     }
 }

@@ -19,8 +19,4 @@ public enum IssueSeverity {
     public String wireValue() {
         return wireValue;
     }
-
-    public boolean isAtLeastError() {
-        return this == FATAL || this == ERROR;
-    }
 }

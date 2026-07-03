@@ -163,6 +163,29 @@ class ValidateApiIT {
     }
 
     @Test
+    void emptyBodyReturns400WithFailEnvelope() {
+        ResponseEntity<JsonNode> response = post("/api/v1/epi/validate", "", new HttpHeaders());
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody().path("verdict").asText()).isEqualTo("FAIL");
+        assertThat(response.getBody().path("issues").get(0).path("source").asText()).isEqualTo("parser");
+    }
+
+    @Test
+    void concurrentValidationsAreThreadSafe() throws IOException {
+        // The bulkhead was removed; the shared FhirValidator must stay correct under parallel load.
+        String body = fixture("good-bundle.json");
+        List<String> verdicts = java.util.stream.IntStream.range(0, 24).parallel()
+                .mapToObj(i -> post("/api/v1/epi/validate?epiType=1", body, new HttpHeaders()))
+                .map(r -> {
+                    assertThat(r.getStatusCode().value()).isEqualTo(200);
+                    return r.getBody().path("verdict").asText();
+                })
+                .toList();
+        assertThat(verdicts).hasSize(24).allSatisfy(v ->
+                assertThat(v).isEqualTo("PASS_WITH_WARNINGS"));
+    }
+
+    @Test
     void infoEndpointIdentifiesTheValidator() {
         JsonNode info = rest.getForObject("/api/v1/epi/info", JsonNode.class);
         assertThat(info.path("fhirVersion").asText()).isEqualTo("5.0.0");

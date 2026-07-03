@@ -29,12 +29,6 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(e.envelope());
     }
 
-    @ExceptionHandler(GzipRequestFilter.PayloadTooLargeException.class)
-    public ResponseEntity<Map<String, Object>> tooLarge(GzipRequestFilter.PayloadTooLargeException e,
-                                                        HttpServletRequest request) {
-        return problem(HttpStatus.PAYLOAD_TOO_LARGE, e.getMessage(), request);
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> unexpected(Exception e, HttpServletRequest request) {
         // Spring web exceptions (404 no route, 405 wrong method, 415 bad media type, ...) carry

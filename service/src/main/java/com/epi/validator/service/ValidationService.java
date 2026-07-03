@@ -38,9 +38,10 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * One validation run: parse the raw body as FHIR R5, validate it against the pinned ePI IG
- * with the official validator engine, run the simple document/type checks, and derive the
- * verdict from the validation result — never from HTTP status.
+ * One validation run: parse the raw body as FHIR R5, validate it against the pinned ePI IG with
+ * the official validator engine, run the simple document/type checks, and derive the verdict
+ * from the validation result — never from HTTP status. The {@link FhirValidator} is a shared,
+ * thread-safe singleton, so this service is safe under concurrent requests.
  */
 @Service
 public class ValidationService {
@@ -74,9 +75,8 @@ public class ValidationService {
         String requestedType = normalizeRequestedType(epiTypeParam);
         String raw = new String(body, StandardCharsets.UTF_8);
 
-        Bundle bundle = parseBundle(raw, contentType, requestedType, body, traceId);
-        EpiType detected = typeDetector.detect(bundle);
-        TypeResolution types = TypeResolution.resolve(requestedType, detected);
+        Bundle bundle = parseOrFail(raw, contentType, requestedType, body, traceId);
+        TypeResolution types = TypeResolution.resolve(requestedType, typeDetector.detect(bundle));
 
         // Validate the raw source string — never a re-serialized object — so line/column
         // locations survive for the repair loop.
@@ -88,27 +88,86 @@ public class ValidationService {
         issues.addAll(simpleChecks.run(bundle, types));
         List<Issue> sorted = issueMapper.sortBySeverity(issues);
 
-        OperationOutcome outcome = buildOperationOutcome(result, sorted);
+        return envelope(verdictOf(sorted), types, List.of(properties.bundleProfile()), sorted,
+                appendPolicyIssues((OperationOutcome) result.toOperationOutcome(), sorted), body, traceId);
+    }
+
+    private Bundle parseOrFail(String raw, String contentType, String requestedType,
+                               byte[] body, String traceId) {
+        boolean xml = contentType != null && contentType.toLowerCase(Locale.ROOT).contains("xml");
+        IParser parser = xml ? fhirContext.newXmlParser() : fhirContext.newJsonParser();
+        Resource resource;
+        try {
+            resource = (Resource) parser.parseResource(raw);
+        } catch (DataFormatException e) {
+            Issue issue = new Issue(IssueSeverity.FATAL, Issue.SOURCE_PARSER, "PARSE-001",
+                    "Request body is not parseable FHIR: " + e.getMessage(), null, null, null);
+            OperationOutcome outcome = new OperationOutcome();
+            outcome.addIssue()
+                    .setSeverity(OperationOutcome.IssueSeverity.FATAL)
+                    .setCode(OperationOutcome.IssueType.INVALID)
+                    .setDiagnostics(issue.message());
+            TypeResolution unknown = new TypeResolution(requestedType, EpiType.UNKNOWN, EpiType.UNKNOWN);
+            throw new UnparseableRequestException(
+                    envelope(Verdict.FAIL, unknown, List.of(), List.of(issue), outcome, body, traceId),
+                    e.getMessage());
+        }
+        if (!(resource instanceof Bundle bundle)) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Expected a FHIR Bundle (document), received a " + resource.fhirType());
+        }
+        return bundle;
+    }
+
+    /** Assembles the response envelope — the single construction point for both success and parse-failure. */
+    private ValidationResponse envelope(Verdict verdict, TypeResolution types, List<String> profiles,
+                                        List<Issue> issues, OperationOutcome outcome, byte[] body, String traceId) {
         return new ValidationResponse(
-                verdictOf(sorted),
+                verdict,
                 types.requested(),
                 types.detected(),
                 types.effective(),
-                List.of(properties.bundleProfile()),
-                sorted,
+                profiles,
+                issues,
                 toJsonNode(fhirContext.newJsonParser().encodeResourceToString(outcome)),
                 sha256Hex(body),
                 traceId,
                 validatorInfo);
     }
 
+    /** Appends the simple-check issues to HAPI's OperationOutcome so it covers the whole run. */
+    private static OperationOutcome appendPolicyIssues(OperationOutcome outcome, List<Issue> issues) {
+        for (Issue issue : issues) {
+            if (!Issue.SOURCE_SIMPLE_CHECK.equals(issue.source())) {
+                continue;
+            }
+            OperationOutcome.OperationOutcomeIssueComponent component = outcome.addIssue()
+                    .setSeverity(ooSeverity(issue.severity()))
+                    .setCode(OperationOutcome.IssueType.BUSINESSRULE)
+                    .setDiagnostics(issue.message() + " [" + issue.ruleId() + "]");
+            if (issue.fhirPath() != null) {
+                component.addExpression(issue.fhirPath());
+            }
+        }
+        return outcome;
+    }
+
+    private static OperationOutcome.IssueSeverity ooSeverity(IssueSeverity severity) {
+        return switch (severity) {
+            case FATAL -> OperationOutcome.IssueSeverity.FATAL;
+            case ERROR -> OperationOutcome.IssueSeverity.ERROR;
+            case WARNING -> OperationOutcome.IssueSeverity.WARNING;
+            case INFORMATION -> OperationOutcome.IssueSeverity.INFORMATION;
+        };
+    }
+
     private static Verdict verdictOf(List<Issue> issues) {
-        boolean hasError = issues.stream().anyMatch(Issue::isError);
-        if (hasError) {
+        if (issues.stream().anyMatch(Issue::isError)) {
             return Verdict.FAIL;
         }
-        boolean hasWarning = issues.stream().anyMatch(i -> i.severity() == IssueSeverity.WARNING);
-        return hasWarning ? Verdict.PASS_WITH_WARNINGS : Verdict.PASS;
+        return issues.stream().anyMatch(i -> i.severity() == IssueSeverity.WARNING)
+                ? Verdict.PASS_WITH_WARNINGS
+                : Verdict.PASS;
     }
 
     private String normalizeRequestedType(String epiTypeParam) {
@@ -125,64 +184,6 @@ public class ValidationService {
         return requested;
     }
 
-    private Bundle parseBundle(String raw, String contentType, String requestedType,
-                               byte[] body, String traceId) {
-        boolean xml = contentType != null && contentType.toLowerCase(Locale.ROOT).contains("xml");
-        IParser parser = xml ? fhirContext.newXmlParser() : fhirContext.newJsonParser();
-        Resource resource;
-        try {
-            resource = (Resource) parser.parseResource(raw);
-        } catch (DataFormatException e) {
-            throw new UnparseableRequestException(
-                    parserFailureEnvelope(requestedType, body, traceId, e), e.getMessage());
-        }
-        if (!(resource instanceof Bundle bundle)) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "Expected a FHIR Bundle (document), received a " + resource.fhirType());
-        }
-        return bundle;
-    }
-
-    private ValidationResponse parserFailureEnvelope(String requestedType, byte[] body, String traceId,
-                                                     DataFormatException cause) {
-        Issue issue = new Issue(IssueSeverity.FATAL, Issue.SOURCE_PARSER, "PARSE-001",
-                "Request body is not parseable FHIR: " + cause.getMessage(), null, null, null);
-        OperationOutcome outcome = new OperationOutcome();
-        OperationOutcome.OperationOutcomeIssueComponent component = outcome.addIssue();
-        component.setSeverity(OperationOutcome.IssueSeverity.FATAL);
-        component.setCode(OperationOutcome.IssueType.INVALID);
-        component.setDiagnostics(issue.message());
-        return new ValidationResponse(
-                Verdict.FAIL,
-                requestedType,
-                EpiType.UNKNOWN,
-                EpiType.UNKNOWN,
-                List.of(),
-                List.of(issue),
-                toJsonNode(fhirContext.newJsonParser().encodeResourceToString(outcome)),
-                sha256Hex(body),
-                traceId,
-                validatorInfo);
-    }
-
-    private OperationOutcome buildOperationOutcome(ValidationResult result, List<Issue> issues) {
-        // HAPI's OperationOutcome carries line/col extensions; append the simple-check issues
-        // so the OperationOutcome covers the whole run.
-        OperationOutcome outcome = (OperationOutcome) result.toOperationOutcome();
-        issues.stream()
-                .filter(i -> Issue.SOURCE_SIMPLE_CHECK.equals(i.source()))
-                .forEach(i -> {
-                    OperationOutcome.OperationOutcomeIssueComponent component = outcome.addIssue();
-                    component.setSeverity(OperationOutcome.IssueSeverity.ERROR);
-                    component.setCode(OperationOutcome.IssueType.BUSINESSRULE);
-                    component.setDiagnostics(i.message() + " [" + i.ruleId() + "]");
-                    if (i.fhirPath() != null) {
-                        component.addExpression(i.fhirPath());
-                    }
-                });
-        return outcome;
-    }
-
     private JsonNode toJsonNode(String encoded) {
         try {
             return objectMapper.readTree(encoded);
@@ -197,10 +198,5 @@ public class ValidationService {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 unavailable", e);
         }
-    }
-
-    /** Exposed for the info endpoint. */
-    public ValidatorInfo validatorInfo() {
-        return validatorInfo;
     }
 }
