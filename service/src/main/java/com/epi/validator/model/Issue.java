@@ -23,6 +23,7 @@ public record Issue(
 
     public static final String SOURCE_VALIDATOR = "hapi-validator";
     public static final String SOURCE_SIMPLE_CHECK = "simple-check";
+    public static final String SOURCE_CLINICAL_PROFILE = "clinical-profile";
     public static final String SOURCE_PARSER = "parser";
 
     public boolean isError() {

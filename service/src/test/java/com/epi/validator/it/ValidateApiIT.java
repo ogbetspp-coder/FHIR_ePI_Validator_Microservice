@@ -2,6 +2,8 @@ package com.epi.validator.it;
 
 import ca.uhn.fhir.context.FhirContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -279,5 +281,81 @@ class ValidateApiIT {
         // Validation runs (verdict present) rather than failing to decode; content was not mangled.
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().path("verdict").asText()).isNotBlank();
+    }
+
+    // --- Type-3 ClinicalUseDefinition sub-profile enforcement ------------------------------
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private ObjectNode type3WithoutCudMetaProfiles() throws IOException {
+        ObjectNode bundle = (ObjectNode) MAPPER.readTree(fixture("type3-example.json"));
+        for (JsonNode entry : bundle.withArray("entry")) {
+            JsonNode resource = entry.path("resource");
+            if ("ClinicalUseDefinition".equals(resource.path("resourceType").asText())
+                    && resource.has("meta")) {
+                ((ObjectNode) resource.path("meta")).remove("profile");
+            }
+        }
+        return bundle;
+    }
+
+    private long clinicalProfileErrors(JsonNode envelope) {
+        long count = 0;
+        for (JsonNode issue : envelope.path("issues")) {
+            if ("clinical-profile".equals(issue.path("source").asText())
+                    && issue.path("severity").asText().matches("error|fatal")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Test
+    void conformantType3ClinicalContentPassesWithoutMetaProfile() throws IOException {
+        // Sub-profiles are enforced even with meta.profile stripped; conformant CUDs must not
+        // gain false errors (the whole bundle still FAILs on the example's own narrative defects).
+        ObjectNode bundle = type3WithoutCudMetaProfiles();
+        JsonNode envelope = post("/api/v1/epi/validate?epiType=3", bundle.toString(), new HttpHeaders())
+                .getBody();
+        assertThat(clinicalProfileErrors(envelope))
+                .as("conformant ClinicalUseDefinition resources produce no sub-profile errors").isZero();
+    }
+
+    @Test
+    void missingRequiredIndicationIsCaughtBySubProfileNotBase() throws IOException {
+        // Remove the indication element (base ClinicalUseDefinition allows it; the ePI indication
+        // sub-profile requires min=1) and strip meta.profile — base validation would miss this.
+        ObjectNode bundle = type3WithoutCudMetaProfiles();
+        for (JsonNode entry : bundle.withArray("entry")) {
+            JsonNode resource = entry.path("resource");
+            if ("ClinicalUseDefinition".equals(resource.path("resourceType").asText())
+                    && "indication".equals(resource.path("type").asText())) {
+                ((ObjectNode) resource).remove("indication");
+            }
+        }
+        JsonNode envelope = post("/api/v1/epi/validate?epiType=3", bundle.toString(), new HttpHeaders())
+                .getBody();
+        assertThat(envelope.path("verdict").asText()).isEqualTo("FAIL");
+
+        boolean caughtByClinicalProfile = false;
+        boolean caughtByBaseValidator = false;
+        for (JsonNode issue : envelope.path("issues")) {
+            boolean aboutIndication = issue.path("message").asText().toLowerCase().contains("indication");
+            if (!aboutIndication || !issue.path("severity").asText().matches("error|fatal")) {
+                continue;
+            }
+            if ("clinical-profile".equals(issue.path("source").asText())) {
+                caughtByClinicalProfile = true;
+                assertThat(issue.path("ruleId").asText()).isEqualTo("EPI-CUD-PROFILE");
+            }
+            if ("hapi-validator".equals(issue.path("source").asText())) {
+                caughtByBaseValidator = true;
+            }
+        }
+        assertThat(caughtByClinicalProfile)
+                .as("the ePI indication sub-profile enforcement catches the missing element").isTrue();
+        assertThat(caughtByBaseValidator)
+                .as("base Bundle validation does NOT catch it — this is exactly the gap being closed")
+                .isFalse();
     }
 }

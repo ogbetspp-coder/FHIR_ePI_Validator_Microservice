@@ -102,6 +102,13 @@ warm-up validation has run (~30–60 s after start).
    | `EPI-TYPE-001` | requested Type 3 requires clinical content (`ClinicalUseDefinition`/`MedicationKnowledge`) |
    | `EPI-TYPE-002` | requested Type 2/3 requires product-data resources (`MedicinalProductDefinition`, …) |
 
+4. **ClinicalUseDefinition sub-profiles** (`clinical-profile` issues, rule `EPI-CUD-PROFILE`) —
+   each `ClinicalUseDefinition` is validated against the ePI sub-profile derived from its `type`
+   (indication / contraindication / interaction / undesirable-effect / warning), **regardless of
+   whether the resource declares `meta.profile`**. The `Bundle-uv-epi` profile only pins base
+   ClinicalUseDefinition, so without this an AI-generated Type-3 bundle that omits `meta.profile`
+   would skip the constraints that define Type 3.
+
 Everything runs **offline**: packages are vendored into the image
 (`service/src/main/resources/packages/`, pinned in `tools/packages.lock.json`,
 verified by `tools/vendor-packages.sh --verify`). No network at build or runtime.
@@ -166,11 +173,6 @@ Security posture (air-gapped operation, input hardening, tested threat cases) is
   be read as "terminology validated." Point `EPI_VALIDATION_REMOTETERMINOLOGY_*` at an internal
   terminology server (Ontoserver/tx mirror) to restore strict code checking. (Codes in *known,
   complete* code systems, e.g. FHIR core, are still validated and error normally.)
-- **ClinicalUseDefinition ePI sub-profiles** (indication / contraindication / interaction /
-  undesirable-effect / warning) are enforced only when the resource declares the corresponding
-  ePI `meta.profile`. A Type-3 bundle whose ClinicalUseDefinition entries omit `meta.profile` is
-  validated against base ClinicalUseDefinition only. `EPI-TYPE-001` still confirms clinical
-  content is *present*. Explicit per-resource sub-profile enforcement is the top phase-2 item.
 - Validates bundle conformance, **not medical correctness** of label content.
 - ePI type detection is a diagnostic heuristic; the type *contract* is enforced only for an
   explicitly requested `epiType`.

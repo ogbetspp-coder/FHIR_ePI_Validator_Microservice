@@ -6,6 +6,7 @@ import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.validation.FhirValidator;
 import ca.uhn.fhir.validation.ValidationOptions;
 import ca.uhn.fhir.validation.ValidationResult;
+import com.epi.validator.checks.ClinicalUseDefinitionProfileValidator;
 import com.epi.validator.checks.SimpleDocumentChecks;
 import com.epi.validator.config.EpiValidationProperties;
 import com.epi.validator.engine.EpiTypeDetector;
@@ -51,6 +52,7 @@ public class ValidationService {
     private final EpiValidationProperties properties;
     private final EpiTypeDetector typeDetector;
     private final SimpleDocumentChecks simpleChecks;
+    private final ClinicalUseDefinitionProfileValidator clinicalChecks;
     private final IssueMapper issueMapper;
     private final ValidatorInfo validatorInfo;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -60,6 +62,7 @@ public class ValidationService {
                              EpiValidationProperties properties,
                              EpiTypeDetector typeDetector,
                              SimpleDocumentChecks simpleChecks,
+                             ClinicalUseDefinitionProfileValidator clinicalChecks,
                              IssueMapper issueMapper,
                              ValidatorInfo validatorInfo) {
         this.fhirContext = fhirContext;
@@ -67,6 +70,7 @@ public class ValidationService {
         this.properties = properties;
         this.typeDetector = typeDetector;
         this.simpleChecks = simpleChecks;
+        this.clinicalChecks = clinicalChecks;
         this.issueMapper = issueMapper;
         this.validatorInfo = validatorInfo;
     }
@@ -88,6 +92,8 @@ public class ValidationService {
         List<Issue> issues = new ArrayList<>();
         result.getMessages().forEach(m -> issues.add(issueMapper.map(m)));
         issues.addAll(simpleChecks.run(bundle, types));
+        // Enforce the ePI ClinicalUseDefinition sub-profiles even when meta.profile is absent.
+        issues.addAll(clinicalChecks.validate(bundle));
         List<Issue> sorted = issueMapper.sortBySeverity(issues);
 
         return envelope(verdictOf(sorted), types, List.of(properties.bundleProfile()), sorted,
@@ -137,10 +143,15 @@ public class ValidationService {
                 validatorInfo);
     }
 
-    /** Appends the simple-check issues to HAPI's OperationOutcome so it covers the whole run. */
+    /**
+     * Appends the supplemental issues (simple checks + ClinicalUseDefinition sub-profile
+     * enforcement) to HAPI's OperationOutcome so it covers the whole run. The base OO already
+     * holds the main bundle-validation issues.
+     */
     private static OperationOutcome appendPolicyIssues(OperationOutcome outcome, List<Issue> issues) {
         for (Issue issue : issues) {
-            if (!Issue.SOURCE_SIMPLE_CHECK.equals(issue.source())) {
+            if (!Issue.SOURCE_SIMPLE_CHECK.equals(issue.source())
+                    && !Issue.SOURCE_CLINICAL_PROFILE.equals(issue.source())) {
                 continue;
             }
             OperationOutcome.OperationOutcomeIssueComponent component = outcome.addIssue()
