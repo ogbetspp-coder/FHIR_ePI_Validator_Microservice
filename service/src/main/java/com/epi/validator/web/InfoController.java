@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** "What validator am I talking to?" — package pins and readiness, nothing more. */
+/** "What validator am I talking to?" Package pins and readiness, nothing more. */
 @RestController
 @Tag(name = "ePI validation")
 public class InfoController {

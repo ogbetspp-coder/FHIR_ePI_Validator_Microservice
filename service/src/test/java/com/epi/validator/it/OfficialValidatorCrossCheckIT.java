@@ -24,8 +24,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Cross-checks this service's structural verdict against the <b>official HL7 FHIR validator</b>
- * — {@code org.hl7.fhir.validation.ValidationEngine}, the exact reference engine behind
+ * Cross-checks this service's structural verdict against the <b>official HL7 FHIR validator</b>,
+ * {@code org.hl7.fhir.validation.ValidationEngine}, the exact reference engine behind
  * validator.fhir.org and validator_cli, pinned to the same core version this service embeds
  * (6.9.4). Both are configured with the same offline policy the gate uses (no external
  * terminology server, example URLs permitted) so the comparison isolates profile conformance

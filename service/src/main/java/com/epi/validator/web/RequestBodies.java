@@ -13,7 +13,7 @@ import java.util.zip.GZIPInputStream;
 /**
  * Reads a request body into memory with a hard size ceiling, inflating {@code Content-Encoding:
  * gzip} (Cloud Run does not do this for the app). Both the compressed read and the inflated
- * result are bounded, so neither a large upload nor a gzip bomb can exhaust the heap — the
+ * result are bounded, so neither a large upload nor a gzip bomb can exhaust the heap. The
  * ceiling is enforced while streaming, before the whole body is buffered.
  */
 final class RequestBodies {

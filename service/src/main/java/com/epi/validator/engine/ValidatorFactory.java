@@ -30,7 +30,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Builds THE validation chain: the official HAPI/HL7 validator engine over the vendored,
- * SHA-256-pinned ePI IG package. Fully offline — no network at build or runtime.
+ * SHA-256-pinned ePI IG package. Fully offline: no network at build or runtime.
  */
 @Configuration(proxyBeanMethods = false)
 public class ValidatorFactory {

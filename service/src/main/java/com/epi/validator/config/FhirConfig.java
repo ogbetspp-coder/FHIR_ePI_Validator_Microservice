@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class FhirConfig {
 
     /**
-     * One R5 context per JVM — FhirContext construction is expensive and the instance is
+     * One R5 context per JVM. FhirContext construction is expensive and the instance is
      * thread-safe. Parsers are created per request; they are cheap.
      */
     @Bean

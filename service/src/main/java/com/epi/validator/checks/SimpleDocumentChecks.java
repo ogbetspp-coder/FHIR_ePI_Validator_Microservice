@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Five hardcoded ePI sanity checks — deliberately not a rule framework. They give the repair
+ * Five hardcoded ePI sanity checks, deliberately not a rule framework. They give the repair
  * agent friendlier signals than raw profile errors and enforce the type contract:
  *
  * <pre>
@@ -34,7 +34,7 @@ import java.util.Set;
  * EPI-TYPE-002 requested Type 2/3 requires product-data resources
  * </pre>
  *
- * The TYPE checks only fire for an explicitly requested type — that is the contract being
+ * The TYPE checks only fire for an explicitly requested type. That is the contract being
  * enforced; with {@code epiType=auto} there is no contract, and detection alone never
  * downgrades an explicit request.
  */
@@ -112,7 +112,7 @@ public class SimpleDocumentChecks {
 
     /**
      * References borne directly by the entry resource, excluding those inside its contained
-     * resources — a contained resource is a self-contained sub-document whose outbound
+     * resources. A contained resource is a self-contained sub-document whose outbound
      * references are out of scope for bundle-entry integrity (and would otherwise false-fail).
      */
     private Set<Reference> outboundReferences(Resource resource) {
@@ -138,7 +138,7 @@ public class SimpleDocumentChecks {
         }
         // Exact match only. An absolute reference (scheme://... or urn:...) must match an entry
         // fullUrl exactly; a relative Type/id must match an entry's resource id. Never loose-match
-        // by URL tail — two different servers can share a Type/id and are NOT the same resource.
+        // by URL tail: two different servers can share a Type/id and are NOT the same resource.
         return targets.contains(ref);
     }
 

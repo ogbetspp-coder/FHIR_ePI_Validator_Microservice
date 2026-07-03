@@ -25,7 +25,7 @@ smoke: ## Validate the two example bundles against BASE_URL
 	python3 examples/validate_bundle.py examples/good-bundle.json --epi-type 1 --base-url $(BASE_URL)
 	! python3 examples/validate_bundle.py examples/broken-bundle.json --epi-type 1 --base-url $(BASE_URL)
 
-vendor: ## Re-download IG packages per tools/packages.lock.json (updates pins — deliberate PR only)
+vendor: ## Re-download IG packages per tools/packages.lock.json (updates pins; deliberate PR only)
 	tools/vendor-packages.sh
 
 vendor-verify: ## Verify committed IG packages match the SHA-256 lockfile (offline)

@@ -324,7 +324,7 @@ class ValidateApiIT {
     @Test
     void missingRequiredIndicationIsCaughtBySubProfileNotBase() throws IOException {
         // Remove the indication element (base ClinicalUseDefinition allows it; the ePI indication
-        // sub-profile requires min=1) and strip meta.profile — base validation would miss this.
+        // sub-profile requires min=1) and strip meta.profile; base validation would miss this.
         ObjectNode bundle = type3WithoutCudMetaProfiles();
         for (JsonNode entry : bundle.withArray("entry")) {
             JsonNode resource = entry.path("resource");
@@ -355,7 +355,7 @@ class ValidateApiIT {
         assertThat(caughtByClinicalProfile)
                 .as("the ePI indication sub-profile enforcement catches the missing element").isTrue();
         assertThat(caughtByBaseValidator)
-                .as("base Bundle validation does NOT catch it — this is exactly the gap being closed")
+                .as("base Bundle validation does NOT catch it; this is exactly the gap being closed")
                 .isFalse();
     }
 }

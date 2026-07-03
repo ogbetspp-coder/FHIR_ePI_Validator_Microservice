@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * non-UTF-8 document (e.g. an ISO-8859-1 EU SmPC with accented characters) is validated as
  * written rather than silently corrupted into U+FFFD. Precedence: a byte-order mark, then the
  * Content-Type {@code charset} parameter, then an XML encoding declaration, then UTF-8.
- * Decoding is strict — an undecodable body fails with 400 rather than validating garbage.
+ * Decoding is strict: an undecodable body fails with 400 rather than validating garbage.
  */
 public final class BodyDecoder {
 

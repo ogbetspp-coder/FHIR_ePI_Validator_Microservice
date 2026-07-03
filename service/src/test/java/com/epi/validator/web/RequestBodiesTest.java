@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * The crash-critical request-body path: bodies are bounded while streaming, gzip is inflated
- * with the same ceiling (bomb-safe), and malformed input fails cleanly with the right status —
+ * with the same ceiling (bomb-safe), and malformed input fails cleanly with the right status,
  * never an unbounded buffer or an ambiguous 500.
  */
 class RequestBodiesTest {
@@ -98,7 +98,7 @@ class RequestBodiesTest {
 
     @Test
     void rejectsGzipBombWith413OnInflatedSize() throws IOException {
-        // Compresses tiny, inflates far past the cap — must fail on the inflated ceiling, not OOM.
+        // Compresses tiny, inflates far past the cap; must fail on the inflated ceiling, not OOM.
         byte[] payload = new byte[64 * 1024];
         byte[] compressed = gzip(payload);
         assertThat(compressed.length).isLessThan((int) CAP); // the compressed body slips under the cap

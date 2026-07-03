@@ -15,4 +15,11 @@ public record EpiValidationProperties(
         String igPackage,
         @DefaultValue List<String> dependencyPackages,
         String bundleProfile) {
+
+    public EpiValidationProperties {
+        if (maxBodyMb <= 0) {
+            throw new IllegalArgumentException(
+                    "epi.validation.max-body-mb must be a positive number of megabytes, was " + maxBodyMb);
+        }
+    }
 }

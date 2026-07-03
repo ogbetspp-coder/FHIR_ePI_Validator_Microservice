@@ -32,7 +32,7 @@ public class ValidationController {
             description = """
                     Body: a FHIR Bundle (document) as application/fhir+json or application/fhir+xml; \
                     Content-Encoding: gzip is supported. Returns HTTP 200 whenever validation \
-                    executed, regardless of verdict — gate on the envelope's `verdict`, never on HTTP \
+                    executed, regardless of verdict; gate on the envelope's `verdict`, never on HTTP \
                     status. Production callers should pass epiType=1|2|3 explicitly; `auto` detects the \
                     type from content but an explicit request is never downgraded by detection.""")
     @PostMapping(
@@ -41,7 +41,7 @@ public class ValidationController {
                     "application/fhir+xml", MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ValidationResponse validate(
-            @Parameter(description = "1 | 2 | 3 | auto — production callers pass the contracted type")
+            @Parameter(description = "1 | 2 | 3 | auto; production callers pass the contracted type")
             @RequestParam(name = "epiType", required = false, defaultValue = "auto") String epiType,
             HttpServletRequest request) {
         // Read the body ourselves (bounded + gzip-aware) instead of @RequestBody so a large

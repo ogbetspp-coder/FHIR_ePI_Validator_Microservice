@@ -41,7 +41,7 @@ import java.util.Locale;
 /**
  * One validation run: parse the raw body as FHIR R5, validate it against the pinned ePI IG with
  * the official validator engine, run the simple document/type checks, and derive the verdict
- * from the validation result — never from HTTP status. The {@link FhirValidator} is a shared,
+ * from the validation result, never from HTTP status. The {@link FhirValidator} is a shared,
  * thread-safe singleton, so this service is safe under concurrent requests.
  */
 @Service
@@ -84,7 +84,7 @@ public class ValidationService {
         Bundle bundle = parseOrFail(raw, contentType, requestedType, body, traceId);
         TypeResolution types = TypeResolution.resolve(requestedType, typeDetector.detect(bundle));
 
-        // Validate the raw source string — never a re-serialized object — so line/column
+        // Validate the raw source string, never a re-serialized object, so line/column
         // locations survive for the repair loop.
         ValidationResult result = validator.validateWithResult(raw,
                 new ValidationOptions().addProfile(properties.bundleProfile()));
@@ -127,7 +127,7 @@ public class ValidationService {
         return bundle;
     }
 
-    /** Assembles the response envelope — the single construction point for both success and parse-failure. */
+    /** Assembles the response envelope: the single construction point for both success and parse-failure. */
     private ValidationResponse envelope(Verdict verdict, TypeResolution types, List<String> profiles,
                                         List<Issue> issues, OperationOutcome outcome, byte[] body, String traceId) {
         return new ValidationResponse(
@@ -186,7 +186,7 @@ public class ValidationService {
     private String normalizeRequestedType(String epiTypeParam) {
         String requested = epiTypeParam == null || epiTypeParam.isBlank()
                 ? TypeResolution.AUTO
-                : epiTypeParam.toLowerCase(Locale.ROOT);
+                : epiTypeParam.strip().toLowerCase(Locale.ROOT);
         if (!TypeResolution.AUTO.equals(requested)) {
             try {
                 EpiType.fromWire(requested);

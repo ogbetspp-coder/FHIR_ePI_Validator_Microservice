@@ -7,7 +7,7 @@
 #   --refresh <name>   re-download one package and PRINT its new SHA-256 (does not edit the lockfile;
 #                      update the lockfile by hand so the change is explicit in review)
 #
-# This script is run manually when updating pins — never from CI or the Docker build.
+# This script is run manually when updating pins, never from CI or the Docker build.
 # CI and Docker consume only the committed .tgz files (air-gapped, reproducible builds).
 set -euo pipefail
 
@@ -50,7 +50,7 @@ while IFS=$'\t' read -r target url expected name version; do
       curl -fsSL --retry 3 --retry-delay 2 -o "$tmp" "$url"
       actual="$(sha "$tmp")"
       if [[ "$actual" != "$expected" ]]; then
-        echo "SHA-256 MISMATCH for $target (source drifted — this is the drift guard)" >&2
+        echo "SHA-256 MISMATCH for $target (source drifted; this is the drift guard)" >&2
         echo "  expected $expected" >&2
         echo "  actual   $actual" >&2
         echo "  If the change is intentional, use --refresh and update the lockfile by hand." >&2

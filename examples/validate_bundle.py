@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Validate a FHIR ePI bundle against the validator service. Stdlib only — no dependencies.
+"""Validate a FHIR ePI bundle against the validator service. Stdlib only, no dependencies.
 
 Usage:
     python3 examples/validate_bundle.py examples/good-bundle.json --epi-type 1
     python3 examples/validate_bundle.py examples/broken-bundle.json --epi-type 1
 
 Exits 0 on PASS / PASS_WITH_WARNINGS, 1 on FAIL, 2 on transport/misuse errors.
-Gate on the envelope's verdict — never on HTTP status.
+Gate on the envelope's verdict, never on HTTP status.
 """
 
 import argparse
@@ -27,7 +27,7 @@ def main() -> int:
     parser.add_argument("bundle", help="path to a FHIR Bundle JSON file")
     parser.add_argument("--base-url", default="http://localhost:8080")
     parser.add_argument("--epi-type", default="auto",
-                        help="1|2|3|auto — production callers pass the contracted type")
+                        help="1|2|3|auto; production callers pass the contracted type")
     args = parser.parse_args()
 
     with open(args.bundle, "rb") as f:

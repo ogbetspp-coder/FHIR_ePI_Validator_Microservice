@@ -32,7 +32,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> unexpected(Exception e, HttpServletRequest request) {
         // Spring web exceptions (404 no route, 405 wrong method, 415 bad media type, ...) carry
-        // their own status — preserve it instead of flattening everything to 500.
+        // their own status, so preserve it instead of flattening everything to 500.
         if (e instanceof ErrorResponse errorResponse) {
             HttpStatus status = HttpStatus.valueOf(errorResponse.getStatusCode().value());
             return problem(status, e.getMessage(), request);

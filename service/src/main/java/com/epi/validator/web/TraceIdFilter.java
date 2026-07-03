@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 /**
  * Correlation id for ALCOA+/Part-11-style traceability: accepted from {@code X-Trace-Id} or a
  * W3C {@code traceparent} header, else generated. Present in MDC (all log lines), the response
- * header, and the validation envelope — one id connects source document, extraction proposal,
+ * header, and the validation envelope. One id connects source document, extraction proposal,
  * candidate bundle, validation result, and approval across the pipeline.
  */
 @Component

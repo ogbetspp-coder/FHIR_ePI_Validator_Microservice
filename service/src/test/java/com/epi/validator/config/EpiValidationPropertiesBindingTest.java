@@ -41,4 +41,10 @@ class EpiValidationPropertiesBindingTest {
                 .run(ctx -> assertThat(ctx.getBean(EpiValidationProperties.class).maxBodyMb())
                         .isEqualTo(5));
     }
+
+    @Test
+    void nonPositiveMaxBodyAbortsStartup() {
+        runner.withPropertyValues("epi.validation.max-body-mb=0")
+                .run(ctx -> assertThat(ctx).hasFailed());
+    }
 }
