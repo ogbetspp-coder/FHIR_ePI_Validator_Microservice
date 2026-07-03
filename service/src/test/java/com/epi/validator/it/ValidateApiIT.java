@@ -283,6 +283,31 @@ class ValidateApiIT {
         assertThat(response.getBody().path("verdict").asText()).isNotBlank();
     }
 
+    @Test
+    void epiTypeUnknownIsRejectedNotSilentlyUncontracted() throws IOException {
+        // "unknown" is a detection sentinel, not a request value. It must 422 like epiType=5, not
+        // be accepted and silently skip the EPI-TYPE contract (that would be a false PASS).
+        ResponseEntity<JsonNode> response = post("/api/v1/epi/validate?epiType=unknown",
+                fixture("good-bundle.json"), new HttpHeaders());
+        assertThat(response.getStatusCode().value()).isEqualTo(422);
+    }
+
+    @Test
+    void oversizedBundleIsRejectedBeforeValidation() {
+        // A bundle with more entries than the cap is rejected (413) before the expensive per-entry
+        // validation, so a huge bundle of tiny resources cannot pin a worker thread.
+        StringBuilder sb = new StringBuilder(
+                "{\"resourceType\":\"Bundle\",\"type\":\"document\",\"entry\":[");
+        for (int i = 0; i < 1001; i++) {
+            sb.append(i > 0 ? "," : "")
+                    .append("{\"resource\":{\"resourceType\":\"ClinicalUseDefinition\",\"type\":\"indication\"}}");
+        }
+        sb.append("]}");
+        ResponseEntity<JsonNode> response =
+                post("/api/v1/epi/validate?epiType=3", sb.toString(), new HttpHeaders());
+        assertThat(response.getStatusCode().value()).isEqualTo(413);
+    }
+
     // --- Type-3 ClinicalUseDefinition sub-profile enforcement ------------------------------
 
     private static final ObjectMapper MAPPER = new ObjectMapper();

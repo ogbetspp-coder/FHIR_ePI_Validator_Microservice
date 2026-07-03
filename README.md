@@ -43,7 +43,8 @@ OpenAPI spec (JSON): `http://localhost:8080/v3/api-docs`.
 ### `POST /api/v1/epi/validate`
 
 Send a FHIR Bundle (document) as `application/fhir+json` or `application/fhir+xml`.
-`Content-Encoding: gzip` is supported. Bodies are capped at 50 MB after inflation.
+`Content-Encoding: gzip` is supported. Bodies are capped at 8 MB after inflation and bundles at
+1000 entries (both configurable; see Deployment for how the body cap relates to memory).
 
 | Param | Values | Notes |
 |---|---|---|
@@ -126,9 +127,13 @@ a cold start pays the 30 to 60 second warm-up. Cloud Run example:
 
 ```bash
 gcloud run deploy epi-validator --image=IMAGE --memory=2Gi --cpu=2 \
-  --min-instances=1 --concurrency=8 --cpu-boost \
+  --min-instances=1 --concurrency=4 --cpu-boost \
   --ingress=internal --no-allow-unauthenticated
 ```
+
+Keep `--concurrency` equal to `server.tomcat.threads.max` (default 4). The resident validator is
+large, so `max-body-mb` times that concurrency must fit the heap headroom; raise
+`EPI_VALIDATION_MAXBODYMB` above 8 only with more memory, or it can OOM under concurrent load.
 
 Authentication is left to the platform (IAM and ingress) by design. See [SECURITY.md](SECURITY.md).
 

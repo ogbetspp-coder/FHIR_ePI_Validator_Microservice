@@ -4,10 +4,11 @@ server:
   shutdown: graceful
   tomcat:
     threads:
-      # Bound concurrent validations so load cannot exhaust the heap (the resident validator
-      # is ~1 GB; excess requests queue in the connector instead of running in parallel).
-      # Keep aligned with the platform's per-instance concurrency (e.g. Cloud Run --concurrency).
-      max: 16
+      # Concurrency is bounded by MEMORY, not CPU: the resident validator is large, so only a few
+      # near-cap request bodies can be parsed and validated at once before the 2 GiB heap is
+      # exhausted. Keep threads.max x max-body-mb within the heap headroom (4 x 8 MB is measured
+      # safe). Align the platform per-instance concurrency (e.g. Cloud Run --concurrency) to this.
+      max: 4
 
 spring:
   application:
@@ -33,7 +34,12 @@ logging:
 epi:
   validation:
     # Env override names (relaxed binding, dashes dropped): EPI_VALIDATION_MAXBODYMB, ...
-    max-body-mb: 50
+    # max-body-mb x tomcat.threads.max bounds peak heap use; 8 MB x 4 threads is measured safe in a
+    # 2 GiB container. Raising either needs more heap (see Dockerfile) or it can OOM under load.
+    max-body-mb: 8
+    # Reject bundles with more entries than this before validating, bounding per-request work (a
+    # real ePI is far smaller; 1000 is generous).
+    max-bundle-entries: 1000
     ig-package: packages/hl7.fhir.uv.emedicinal-product-info-1.0.0.tgz
     # NpmPackageValidationSupport does not resolve dependencies - list every declared dep:
     dependency-packages:

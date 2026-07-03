@@ -24,7 +24,8 @@ class EpiValidationPropertiesBindingTest {
     void bindsApplicationYaml() {
         runner.run(ctx -> {
             EpiValidationProperties props = ctx.getBean(EpiValidationProperties.class);
-            assertThat(props.maxBodyMb()).isEqualTo(50);
+            assertThat(props.maxBodyMb()).isEqualTo(8);
+            assertThat(props.maxBundleEntries()).isEqualTo(1000);
             assertThat(props.igPackage())
                     .isEqualTo("packages/hl7.fhir.uv.emedicinal-product-info-1.0.0.tgz");
             assertThat(props.dependencyPackages()).containsExactly(
@@ -45,6 +46,12 @@ class EpiValidationPropertiesBindingTest {
     @Test
     void nonPositiveMaxBodyAbortsStartup() {
         runner.withPropertyValues("epi.validation.max-body-mb=0")
+                .run(ctx -> assertThat(ctx).hasFailed());
+    }
+
+    @Test
+    void nonPositiveMaxBundleEntriesAbortsStartup() {
+        runner.withPropertyValues("epi.validation.max-bundle-entries=0")
                 .run(ctx -> assertThat(ctx).hasFailed());
     }
 }

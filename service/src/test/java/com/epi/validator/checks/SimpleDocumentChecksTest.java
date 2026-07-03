@@ -75,6 +75,17 @@ class SimpleDocumentChecksTest {
     }
 
     @Test
+    void referenceToResourcelessEntryIsDangling() {
+        // An entry carrying only a fullUrl (no resource) is an empty slot: a reference to it must
+        // still be flagged as dangling (EPI-DOC-003), not silently treated as resolved.
+        Composition composition = new Composition();
+        composition.addAuthor(new Reference("urn:uuid:ghost"));
+        Bundle bundle = documentBundle(composition);
+        bundle.addEntry().setFullUrl("urn:uuid:ghost"); // fullUrl only, no resource
+        assertThat(ruleIds(checks.run(bundle, auto(bundle, detector)))).contains("EPI-DOC-003");
+    }
+
+    @Test
     void resolvableReferencesPassDoc003() {
         Composition composition = new Composition();
         // Relative Type/id resolves against the entry's resource id; urn matches fullUrl

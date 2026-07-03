@@ -81,11 +81,16 @@ public class SimpleDocumentChecks {
     private void checkReferencesResolve(Bundle bundle, List<Issue> issues) {
         Set<String> targets = new HashSet<>();
         for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+            // An entry with no resource is an empty slot, not a resolvable target: a reference to
+            // its fullUrl is still dangling, so do not add that fullUrl to the target set.
+            Resource resource = entry.getResource();
+            if (resource == null) {
+                continue;
+            }
             if (entry.hasFullUrl()) {
                 targets.add(entry.getFullUrl());
             }
-            Resource resource = entry.getResource();
-            if (resource != null && resource.hasId()) {
+            if (resource.hasId()) {
                 targets.add(resource.fhirType() + "/" + resource.getIdPart());
             }
         }

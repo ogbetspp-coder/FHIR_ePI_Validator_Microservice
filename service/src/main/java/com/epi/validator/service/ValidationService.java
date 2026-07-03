@@ -82,6 +82,15 @@ public class ValidationService {
         String raw = BodyDecoder.decode(body, contentType);
 
         Bundle bundle = parseOrFail(raw, contentType, requestedType, body, traceId);
+        // Bound the work per request: the ClinicalUseDefinition sub-profile pass re-validates every
+        // clinical entry, so an unreasonably large bundle would pin a worker thread. A real ePI is
+        // far below this cap; reject the pathological case before the expensive validation runs.
+        int entryCount = bundle.getEntry().size();
+        if (entryCount > properties.maxBundleEntries()) {
+            throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE,
+                    "Bundle has " + entryCount + " entries, exceeds the maximum of "
+                            + properties.maxBundleEntries() + " this service will validate");
+        }
         TypeResolution types = TypeResolution.resolve(requestedType, typeDetector.detect(bundle));
 
         // Validate the raw source string, never a re-serialized object, so line/column

@@ -32,6 +32,9 @@ public class IssueMapper {
     }
 
     private static IssueSeverity mapSeverity(SingleValidationMessage message) {
+        if (message.getSeverity() == null) {
+            return IssueSeverity.ERROR; // defensive: HAPI always sets severity, but never NPE a run
+        }
         return switch (message.getSeverity()) {
             case FATAL -> IssueSeverity.FATAL;
             case ERROR -> IssueSeverity.ERROR;

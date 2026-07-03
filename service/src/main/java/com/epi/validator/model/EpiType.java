@@ -23,7 +23,9 @@ public enum EpiType {
     /** Parses the {@code epiType} request parameter value {@code 1|2|3}; {@code auto} is handled by the caller. */
     public static EpiType fromWire(String value) {
         for (EpiType t : values()) {
-            if (t.wireValue.equals(value)) {
+            // UNKNOWN is a detection sentinel, never a valid request value; excluding it here means
+            // epiType=unknown is rejected (422) rather than silently disabling the type contract.
+            if (t != UNKNOWN && t.wireValue.equals(value)) {
                 return t;
             }
         }

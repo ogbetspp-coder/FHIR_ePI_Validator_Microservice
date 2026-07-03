@@ -34,8 +34,11 @@ public class ApiExceptionHandler {
         // Spring web exceptions (404 no route, 405 wrong method, 415 bad media type, ...) carry
         // their own status, so preserve it instead of flattening everything to 500.
         if (e instanceof ErrorResponse errorResponse) {
-            HttpStatus status = HttpStatus.valueOf(errorResponse.getStatusCode().value());
-            return problem(status, e.getMessage(), request);
+            // resolve() returns null (never throws) for a non-standard code; fall through to 500.
+            HttpStatus status = HttpStatus.resolve(errorResponse.getStatusCode().value());
+            if (status != null) {
+                return problem(status, e.getMessage(), request);
+            }
         }
         log.error("Unexpected failure handling {} {}", request.getMethod(), request.getRequestURI(), e);
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error; see logs (traceId in response)", request);
