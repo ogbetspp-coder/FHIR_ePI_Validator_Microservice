@@ -38,9 +38,14 @@ COPY --from=build /workspace/extracted/application/ ./
 # headroom) and keeps resident set ~1.5 GB, ~530 MB margin under the limit. ExitOnOOM turns
 # any genuine exhaustion into a fast restart rather than a degraded, thrashing instance.
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60 -XX:MaxMetaspaceSize=192m -XX:+ExitOnOutOfMemoryError"
-EXPOSE 8080
+# Run Actuator (health/liveness/readiness) on a SEPARATE port. Each validation is CPU/memory-bound
+# and pins a worker thread for its duration, and the request pool is small (threads.max=4); putting
+# probes on their own connector means a burst of slow validations on 8080 can never starve the
+# liveness probe and trigger a false restart. The app API stays on 8080; probes are on 8081.
+ENV MANAGEMENT_SERVER_PORT=8081
+EXPOSE 8080 8081
 
-HEALTHCHECK --start-period=120s --interval=10s --timeout=3s --retries=6 \
-    CMD curl -fsS http://localhost:8080/actuator/health/readiness || exit 1
+HEALTHCHECK --start-period=120s --interval=10s --timeout=5s --retries=6 \
+    CMD curl -fsS http://localhost:8081/actuator/health/readiness || exit 1
 
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]

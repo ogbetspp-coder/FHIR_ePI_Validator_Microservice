@@ -9,8 +9,10 @@ services:
     # Terminology + profile snapshots need real memory; do not undersize
     mem_limit: 2g
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
+      # Probes run on the isolated management port (Dockerfile MANAGEMENT_SERVER_PORT=8081) so
+      # request load on 8080 cannot starve them.
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/actuator/health/readiness"]
       start_period: 180s
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 6

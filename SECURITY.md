@@ -17,7 +17,7 @@ at rest. It runs fully offline.
 | Supply chain | Packages are pinned by SHA-256 in `tools/packages.lock.json` and verified in CI (`vendor-packages.sh --verify`). Maven dependencies are pinned through the HAPI BOM. A CycloneDX SBOM is produced per build. |
 | Reproducible build | Pinned toolchain (Java 21, Spring Boot, HAPI) and `project.build.outputTimestamp`. |
 | Container | Multi-stage build on a distroless-adjacent JRE base. Runs as a non-root user (uid 10001) with a bounded heap and metaspace, and fails fast on OOM. |
-| Resource limits | Request bodies are capped (default 8 MB) while streaming and bundles at 1000 entries, so no single request can pin a worker or exhaust memory. Gzip is inflated under the same byte ceiling (bomb-safe). Concurrent validations are bounded by the Tomcat thread pool (default 4), sized so body-cap x concurrency fits the heap. |
+| Resource limits | Request bodies are capped (default 8 MB) while streaming and bundles at 1000 entries, bounding the work and memory of any single request. Gzip is inflated under the same byte ceiling (bomb-safe). Concurrent validations are bounded by the Tomcat thread pool (default 4), sized so body-cap x concurrency fits the heap. Health probes run on a separate management port (container) so request load cannot starve them and trigger false restarts. |
 | Fail-fast startup | A missing or corrupt package, or an invalid size limit, aborts startup with a non-zero exit. A broken instance never becomes ready. |
 
 ## Input hardening (regression-tested)

@@ -135,6 +135,10 @@ Keep `--concurrency` equal to `server.tomcat.threads.max` (default 4). The resid
 large, so `max-body-mb` times that concurrency must fit the heap headroom; raise
 `EPI_VALIDATION_MAXBODYMB` above 8 only with more memory, or it can OOM under concurrent load.
 
+Health probes run on a **separate management port** (8081 in the container, via
+`MANAGEMENT_SERVER_PORT`) so a burst of slow validations on 8080 cannot starve them and cause false
+restarts. Point the platform's liveness/readiness probe at `:8081/actuator/health/{liveness,readiness}`.
+
 Authentication is left to the platform (IAM and ingress) by design. See [SECURITY.md](SECURITY.md).
 
 ## Examples
