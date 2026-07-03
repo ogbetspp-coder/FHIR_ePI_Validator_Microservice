@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  # Cloud Run (and any PaaS) provides the serving port via $PORT; default 8080 locally and in Docker.
+  port: ${PORT:8080}
   # Drain in-flight validations on SIGTERM (Cloud Run / K8s recycling) instead of dropping them.
   shutdown: graceful
   tomcat:

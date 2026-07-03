@@ -12,48 +12,61 @@ AI-generated FHIR ePI Bundle
 → PASS | PASS_WITH_WARNINGS | FAIL  +  OperationOutcome  +  simplified issues
 ```
 
-This service is the gate in an AI extraction pipeline. The agent proposes a bundle, the service
-checks it, and the pipeline decides from the `verdict`. Gate on the verdict, never on the HTTP
-status.
+This service is the gate in an AI extraction pipeline: the agent proposes a bundle, this service
+checks it, and the pipeline decides from the `verdict`. Always gate on the verdict, never on the
+HTTP status.
 
 ## Quick start
 
-```bash
-docker compose up --wait          # service on :8080 (ready after validator warm-up)
+Only Docker is required.
 
-# Known-good example: expect PASS_WITH_WARNINGS
+```bash
+docker compose up --wait          # builds + runs on :8080, waits for validator warm-up
+
+# Known-good example -> expect PASS_WITH_WARNINGS
 curl -sS -X POST 'http://localhost:8080/api/v1/epi/validate?epiType=1' \
   -H 'Content-Type: application/fhir+json' \
   --data-binary @examples/good-bundle.json | jq .verdict
 
-# Seeded-defect example: expect FAIL with located issues
+# Seeded-defect example -> expect FAIL
 curl -sS -X POST 'http://localhost:8080/api/v1/epi/validate?epiType=1' \
   -H 'Content-Type: application/fhir+json' \
-  --data-binary @examples/broken-bundle.json | jq '{verdict, issues: [.issues[] | select(.severity=="error")]}'
-
-# Or the no-dependency script (exit 0 on pass, 1 on fail)
-python3 examples/validate_bundle.py examples/good-bundle.json --epi-type 1
+  --data-binary @examples/broken-bundle.json | jq '{verdict, errors: [.issues[] | select(.severity=="error")]}'
 ```
 
-Local development: `make build` (tests), `make run`, `make docker`.
-OpenAPI spec (JSON): `http://localhost:8080/v3/api-docs`.
+The OpenAPI spec is at `http://localhost:8080/v3/api-docs`.
+
+## FHIR terms used here (for readers new to FHIR)
+
+You do not need deep FHIR knowledge to run or maintain this service. The terms that show up in the
+code and responses:
+
+- **Resource**: one typed FHIR object (a `Composition`, an `Organization`).
+- **Bundle**: a container of resources. An ePI is a Bundle of `type: document`.
+- **Composition**: the first entry of a document Bundle; the label's structure (sections + narrative).
+- **Profile**: constraints a resource must satisfy (e.g. `Bundle-uv-epi`). "Validate against a profile" means check those constraints.
+- **Implementation Guide (IG)**: a published package of profiles + terminology. Here: `hl7.fhir.uv.emedicinal-product-info` 1.0.0.
+- **Reference**: one resource pointing at another. `EPI-DOC-003` checks references resolve inside the Bundle.
+- **Narrative**: the human-readable HTML (`text.div`) inside a resource.
+- **ClinicalUseDefinition (CUD)**: a machine-readable indication / contraindication / interaction / undesirable-effect / warning.
+- **ePI types**: **Type 1** = document only (leaflet); **Type 2** = + structured product data; **Type 3** = + machine-readable clinical data (CUDs).
+- **OperationOutcome**: FHIR's standard "list of issues" object. This service returns one (for FHIR tooling) next to a flattened `issues` list (for your code).
 
 ## API
 
 ### `POST /api/v1/epi/validate`
 
-Send a FHIR Bundle (document) as `application/fhir+json` or `application/fhir+xml`.
-`Content-Encoding: gzip` is supported. Bodies are capped at 8 MB after inflation and bundles at
-1000 entries (both configurable; see Deployment for how the body cap relates to memory).
+Send a FHIR document Bundle as `application/fhir+json` or `application/fhir+xml`
+(`Content-Encoding: gzip` supported). Bodies are capped at 8 MB after inflation and 1000 entries;
+both configurable.
 
 | Param | Values | Notes |
 |---|---|---|
-| `epiType` | `1`, `2`, `3`, or `auto` (default) | Production callers pass the contracted type. `auto` detects the type from content. An explicit request is never downgraded by detection: declare Type 3 and ship Type 2 content, and it fails. |
+| `epiType` | `1`, `2`, `3`, or `auto` (default) | Production callers pass the contracted type. `auto` detects it from content. An explicit request is never downgraded: declare Type 3 and ship Type 2 content, and it fails. |
 
-The endpoint returns **HTTP 200 whenever validation ran**, whatever the verdict. Other status
-codes mean the request never reached validation: 400 unparseable body (you still get the envelope,
-verdict `FAIL`, one `parser` issue), 413 too large, 415 wrong media type, 422 not a Bundle or bad
-`epiType`.
+**Returns HTTP 200 whenever validation ran**, whatever the verdict. Other codes mean the request
+never reached validation: 400 unparseable body (you still get the envelope, verdict `FAIL`, one
+`parser` issue), 413 too large, 415 wrong media type, 422 not a Bundle or bad `epiType`.
 
 ```jsonc
 {
@@ -62,151 +75,141 @@ verdict `FAIL`, one `parser` issue), 413 too large, 415 wrong media type, 422 no
   "detectedEpiType": "1",                  // diagnostic only
   "effectiveEpiType": "3",                 // what the type checks enforced
   "profilesValidatedAgainst": ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Bundle-uv-epi"],
-  "issues": [
+  "issues": [                              // flat list for your code (line/column when available)
     { "severity": "error", "source": "hapi-validator", "ruleId": "Bundle_BUNDLE_Entry_NotFound",
-      "message": "...", "fhirPath": "Bundle.entry[0]", "line": 12, "column": 3 },
-    { "severity": "error", "source": "simple-check", "ruleId": "EPI-TYPE-001",
-      "message": "Requested ePI Type 3 but the bundle contains no machine-readable clinical content ...",
-      "fhirPath": "Bundle" }
+      "message": "...", "fhirPath": "Bundle.entry[0]", "line": 12, "column": 3 }
   ],
-  "operationOutcome": { "resourceType": "OperationOutcome", "issue": [ /* full FHIR detail */ ] },
-  "inputSha256": "...",                    // hash of the exact bytes that were judged
-  "traceId": "...",                        // accepted inbound via X-Trace-Id, echoed everywhere
+  "operationOutcome": { "resourceType": "OperationOutcome", "issue": [ /* same findings, FHIR format */ ] },
+  "inputSha256": "...",                    // hash of the exact bytes judged
+  "traceId": "...",                        // from X-Trace-Id if sent, else generated; echoed everywhere
   "validatorInfo": { "fhirVersion": "5.0.0", "hapiVersion": "8.10.0",
                      "igPackage": "hl7.fhir.uv.emedicinal-product-info", "igVersion": "1.0.0" }
 }
 ```
 
-Verdict rules: any error gives `FAIL`; any warning with no errors gives `PASS_WITH_WARNINGS`;
-otherwise `PASS`.
+Verdict: any error -> `FAIL`; any warning and no error -> `PASS_WITH_WARNINGS`; otherwise `PASS`.
+Each issue's `source` is `parser`, `hapi-validator`, `simple-check`, or `clinical-profile`.
 
 ### `GET /api/v1/epi/info`
 
-Returns `{fhirVersion, hapiVersion, igPackage, igVersion, ready}`. Answers "what validator am I
-talking to?".
+`{fhirVersion, hapiVersion, igPackage, igVersion, ready}` - which validator you are talking to.
 
-### `GET /actuator/health` (plus `/liveness`, `/readiness`)
+### `GET /actuator/health/{liveness,readiness}`
 
-Readiness (`/actuator/health/readiness`) returns 503 until the IG package loads, snapshots
-generate, and a warm-up validation runs (about 30 to 60 seconds after start). Orchestrators hold
-traffic until readiness passes.
+Readiness is 503 until the IG loads and a warm-up validation runs (~30-60 s after start), then 200.
+In the container these are on port 8081 (see Deploy).
 
 ## What it validates
 
-The service runs four layers and merges their issues into one list.
+Four layers, merged into one `issues` list:
 
-1. **Parse** (`parser`). The body must be valid FHIR R5 JSON or XML.
-2. **FHIR R5 + ePI IG profiles** (`hapi-validator`). The official HAPI/HL7 validator engine runs
-   over the vendored, SHA-256-pinned `hl7.fhir.uv.emedicinal-product-info#1.0.0` package and its
-   dependencies. The raw input is validated directly, so issues carry line and column positions.
-3. **Simple ePI checks** (`simple-check`). Five hardcoded rules:
+1. **Parse** (`parser`): valid FHIR R5 JSON or XML.
+2. **FHIR R5 + ePI profiles** (`hapi-validator`): the official HAPI/HL7 engine over the vendored,
+   SHA-256-pinned `hl7.fhir.uv.emedicinal-product-info#1.0.0` package. Raw input is validated, so
+   issues carry line/column.
+3. **Simple ePI checks** (`simple-check`): five plain rules.
 
    | Rule | Checks |
    |---|---|
    | `EPI-DOC-001` | `Bundle.type` must be `document` |
    | `EPI-DOC-002` | first entry must be a `Composition` |
    | `EPI-DOC-003` | all internal references resolve within the bundle |
-   | `EPI-TYPE-001` | requested Type 3 requires clinical content (`ClinicalUseDefinition` / `MedicationKnowledge`) |
-   | `EPI-TYPE-002` | requested Type 2 or 3 requires product-data resources (`MedicinalProductDefinition`, ...) |
+   | `EPI-TYPE-001` | requested Type 3 requires clinical content (`ClinicalUseDefinition`) |
+   | `EPI-TYPE-002` | requested Type 2/3 requires product data (`MedicinalProductDefinition`, ...) |
 
-4. **ClinicalUseDefinition sub-profiles** (`clinical-profile`, rule `EPI-CUD-PROFILE`). Each
-   `ClinicalUseDefinition` is validated against the ePI sub-profile for its `type` (indication,
-   contraindication, interaction, undesirable-effect, warning), whether or not the resource
-   declares `meta.profile`. The `Bundle-uv-epi` profile only pins base ClinicalUseDefinition, so
-   without this layer an AI-generated Type 3 bundle that omits `meta.profile` would skip the
-   constraints that define Type 3.
+4. **ClinicalUseDefinition sub-profiles** (`clinical-profile`, `EPI-CUD-PROFILE`): each CUD is
+   validated against the ePI sub-profile for its type, even when the resource omits `meta.profile`.
+   Without this, an AI-generated Type 3 bundle could skip the constraints that define Type 3.
 
-Everything runs **offline**. Packages are vendored into the image
-(`service/src/main/resources/packages/`), pinned in `tools/packages.lock.json`, and verified by
-`tools/vendor-packages.sh --verify`. There is no network at build or runtime.
+Everything runs **offline**: IG packages are vendored into the image and SHA-256-pinned in
+`tools/packages.lock.json`. No network at build or runtime.
 
-## Deployment
+## Deploy to Google Cloud Run
 
-The container needs **2 GiB memory** for terminology and profile snapshots. Do not scale to zero:
-a cold start pays the 30 to 60 second warm-up. Cloud Run example:
+Prerequisites: the `gcloud` CLI, a GCP project, and an Artifact Registry Docker repo.
 
 ```bash
-gcloud run deploy epi-validator --image=IMAGE --memory=2Gi --cpu=2 \
-  --min-instances=1 --concurrency=4 --cpu-boost \
+# Set these once for your environment
+PROJECT=your-project;  REGION=europe-west1;  REPO=your-artifact-registry-repo
+IMAGE="$REGION-docker.pkg.dev/$PROJECT/$REPO/epi-validator:$(git rev-parse --short HEAD)"
+
+# 1. Build the image (service/Dockerfile, context = repo root) and push it
+make docker                                                   # -> epi-validator:local
+gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet # one-time
+docker tag epi-validator:local "$IMAGE"
+docker push "$IMAGE"
+
+# 2. Deploy
+gcloud run deploy epi-validator \
+  --image="$IMAGE" --region="$REGION" \
+  --memory=2Gi --cpu=2 --cpu-boost \
+  --min-instances=1 --concurrency=4 \
   --ingress=internal --no-allow-unauthenticated
 ```
 
-Keep `--concurrency` equal to `server.tomcat.threads.max` (default 4). The resident validator is
-large, so `max-body-mb` times that concurrency must fit the heap headroom; raise
-`EPI_VALIDATION_MAXBODYMB` above 8 only with more memory, or it can OOM under concurrent load.
+What each flag is for:
 
-Health probes run on a **separate management port** (8081 in the container, via
-`MANAGEMENT_SERVER_PORT`) so a burst of slow validations on 8080 cannot starve them and cause false
-restarts. Point the platform's liveness/readiness probe at `:8081/actuator/health/{liveness,readiness}`.
+| Flag | Why |
+|---|---|
+| `--memory=2Gi` | The validator loads the ePI IG + terminology (~1.5 GB resident). Less will OOM. |
+| `--cpu=2 --cpu-boost` | Validation is CPU-bound; boost shortens the cold-start warm-up. |
+| `--min-instances=1` | Never scale to zero: a cold start pays a 30-60 s warm-up. |
+| `--concurrency=4` | Must equal `server.tomcat.threads.max` (4). See capacity below. |
+| `--ingress=internal --no-allow-unauthenticated` | No app-layer auth by design: gate with IAM + internal ingress. |
 
-Authentication is left to the platform (IAM and ingress) by design. See [SECURITY.md](SECURITY.md).
+- **Health / ports:** the app serves the API on Cloud Run's `$PORT` (8080) and puts health probes
+  on port 8081. Cloud Run's default startup check (TCP on the serving port) is enough, and
+  `--min-instances=1` means the warm-up is paid once. (Port 8081 is for GKE/Docker HTTP probes;
+  Cloud Run ignores it.)
+- **Capacity:** `max-body-mb` (8) x `concurrency` (4) must fit the heap. To accept larger bodies,
+  raise `--memory` and `EPI_VALIDATION_MAXBODYMB` together, or lower concurrency. Do not raise
+  concurrency without more memory - it can OOM.
+- **Config** via env vars (add `--set-env-vars`): `EPI_VALIDATION_MAXBODYMB`,
+  `EPI_VALIDATION_MAXBUNDLEENTRIES`.
 
-## Examples
+Auth, network posture, and tested threat cases are in [SECURITY.md](SECURITY.md).
 
-- `examples/good-bundle.json`: the IG's own Type 1 example (package leaflet) with its three known
-  reference defects repaired, so it genuinely passes.
-- `examples/broken-bundle.json`: the same bundle with two seeded extraction defects, a section
-  stripped of its content (profile constraint `cmp-1`) and a dangling author reference
-  (`EPI-DOC-003`).
-- `examples/validate_bundle.py`: a dependency-free client. Its exit code follows the verdict.
+## Local development
 
-## Development and handover
-
-Prerequisites: Docker for the container path; Java 21 and Maven 3.9+ for local Maven builds.
-Nothing else, and no network (the IG packages are vendored).
-
-```bash
-docker compose up --wait            # run it with zero local toolchain
-make build                          # local build + 71 offline tests (unit + integration)
-make run                            # run locally on :8080
-make docker                         # build the container image
-tools/vendor-packages.sh --verify   # confirm vendored packages match the SHA-256 lockfile
-```
-
-Layout: the Spring Boot service is under `service/` (base package `com.epi.validator`). `engine/`
-is the validation chain and type resolution, `checks/` is the five sanity rules plus the
-ClinicalUseDefinition sub-profile enforcement, `web/` is controllers, filters, and body decoding,
-`service/` is orchestration. IG packages and their SHA-256 lockfile live in
-`service/src/main/resources/packages/` and `tools/`.
-
-**Cross-check against the official HL7 validator.** CI runs the reference `org.hl7.fhir.validation`
-engine (the same engine behind validator.fhir.org and `validator_cli`), pinned to the same core
-version this service embeds, against the example bundles. It asserts the engine reaches the same
-verdict as the gate, with terminology and example-URL policy aligned. These two tests are gated on
-`-Dcrosscheck` so a normal build stays offline. Run them locally:
+Prerequisites: Docker for the container path; Java 21 + Maven 3.9+ for local builds. No network
+(IG packages are vendored).
 
 ```bash
-mvn -f service/pom.xml -Dcrosscheck=true test-compile failsafe:integration-test \
-  -Dit.test=OfficialValidatorCrossCheckIT
+make build        # compile + run the full offline test suite (unit + integration)
+make run          # run locally on :8080
+make docker       # build the container image
+make smoke        # validate the good/broken examples against a running instance
 ```
 
-**Refreshing a pinned package** is a deliberate, reviewed change. See
-[`tools/vendor-packages.sh`](tools/vendor-packages.sh) (`--refresh`) and the lockfile header.
+Layout under `service/src/main/java/com/epi/validator/`: `engine/` = validation chain + type
+resolution, `checks/` = the five sanity rules + the ClinicalUseDefinition sub-profile pass, `web/`
+= controllers, filters, body decoding, `service/` = orchestration. IG packages and their SHA-256
+lockfile live in `service/src/main/resources/packages/` and `tools/`.
 
-Security posture (offline operation, input hardening, tested threat cases) is in
-[SECURITY.md](SECURITY.md). CI publishes a CycloneDX SBOM per build.
+- **`examples/`**: `good-bundle.json` (passes), `broken-bundle.json` (fails), and
+  `validate_bundle.py` (a dependency-free client whose exit code follows the verdict).
+- **Cross-check vs the official HL7 validator** (in CI, and runnable locally): confirms this service
+  reaches the same verdict as `org.hl7.fhir.validation`, the engine behind validator.fhir.org. Gated
+  on `-Dcrosscheck` so normal builds stay offline:
+  ```bash
+  mvn -f service/pom.xml -Dcrosscheck=true test-compile failsafe:integration-test -Dit.test=OfficialValidatorCrossCheckIT
+  ```
+- **Refreshing a pinned IG package** is a deliberate change: see `tools/vendor-packages.sh --refresh`
+  and re-run `tools/vendor-packages.sh --verify`. CI publishes a CycloneDX SBOM per build.
 
 ## Known limitations
 
-- **Offline terminology.** Codes in external terminologies (SNOMED CT, WHO ATC, MedDRA, EDQM, EMA
-  SPOR, UNII) are not verified, because those code systems cannot be distributed offline. A wrong
-  code in one of them is a *warning*, not an error. Do not read `PASS_WITH_WARNINGS` as
-  "terminology validated." Restoring strict code checking means adding an internal terminology
-  server to the validation chain (phase 2). Codes in known, complete code systems (for example FHIR
-  core) are still validated and error normally.
-- **Conformance, not correctness.** The service checks bundle and profile conformance, not the
-  medical accuracy of the label content.
-- **Type detection is a heuristic.** Detection is diagnostic. The type contract is enforced only
-  for an explicitly requested `epiType`.
-- **One IG target:** `hl7.fhir.uv.emedicinal-product-info#1.0.0` (FHIR R5). Support for the ePI
-  1.1.0 CI build, policy packs, warning allowlists, a Python SDK, and richer audit lives in this
-  repo's git history and can return as phase 2.
-
-Request bodies are decoded by their declared charset (Content-Type `charset`, then an XML encoding
-declaration, then a BOM, then UTF-8), so a non-UTF-8 document is validated as written. An
-undecodable body is rejected with 400 rather than silently corrupted.
+- **Offline terminology.** External code systems (SNOMED CT, WHO ATC, MedDRA, EDQM, EMA SPOR, UNII)
+  are not distributable offline, so a wrong code in one of them is a *warning*, not an error. Do not
+  read `PASS_WITH_WARNINGS` as "terminology validated." Codes in known code systems (e.g. FHIR core)
+  still error. Point the chain at an internal terminology server to restore strict checking.
+- **Conformance, not correctness.** It checks bundle/profile conformance, not the medical accuracy
+  of the label.
+- **Type detection is a heuristic** - diagnostic only; the type contract is enforced only for an
+  explicitly requested `epiType`.
+- **One IG target:** `hl7.fhir.uv.emedicinal-product-info#1.0.0` (FHIR R5).
 
 ## License
 
-Apache-2.0 (see [LICENSE](LICENSE)). The license is a project default. Confirm it fits your
-organization's policy before external distribution.
+Apache-2.0 (see [LICENSE](LICENSE)). Confirm it fits your organization's policy before external
+distribution.
