@@ -1,6 +1,7 @@
 package com.epi.validator.checks;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.util.FhirTerser;
 import com.epi.validator.engine.EpiTypeDetector;
 import com.epi.validator.engine.TypeResolution;
 import com.epi.validator.model.EpiType;
@@ -115,12 +116,13 @@ public class SimpleDocumentChecks {
      * references are out of scope for bundle-entry integrity (and would otherwise false-fail).
      */
     private Set<Reference> outboundReferences(Resource resource) {
+        FhirTerser terser = fhirContext.newTerser();
         Set<Reference> all = new LinkedHashSet<>(
-                fhirContext.newTerser().getAllPopulatedChildElementsOfType(resource, Reference.class));
+                terser.getAllPopulatedChildElementsOfType(resource, Reference.class));
         if (resource instanceof DomainResource domain) {
             Set<Reference> contained = Collections.newSetFromMap(new IdentityHashMap<>());
             for (Resource c : domain.getContained()) {
-                contained.addAll(fhirContext.newTerser().getAllPopulatedChildElementsOfType(c, Reference.class));
+                contained.addAll(terser.getAllPopulatedChildElementsOfType(c, Reference.class));
             }
             all.removeIf(contained::contains);
         }

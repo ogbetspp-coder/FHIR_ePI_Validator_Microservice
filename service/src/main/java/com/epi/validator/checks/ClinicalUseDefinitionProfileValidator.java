@@ -70,7 +70,7 @@ public class ClinicalUseDefinitionProfileValidator {
             if (profile == null) {
                 continue; // untyped, or a type outside the ePI sub-profile set
             }
-            String location = "Bundle.entry[" + i + "].resource";
+            String entryPath = "Bundle.entry[" + i + "].resource";
             String json = fhirContext.newJsonParser().encodeResourceToString(cud);
             ValidationResult result = validator.validateWithResult(json, new ValidationOptions().addProfile(profile));
             for (SingleValidationMessage message : result.getMessages()) {
@@ -83,12 +83,22 @@ public class ClinicalUseDefinitionProfileValidator {
                         Issue.SOURCE_CLINICAL_PROFILE,
                         "EPI-CUD-PROFILE",
                         mapped.message() + " (ePI " + type + " profile)",
-                        location,
+                        // Re-anchor the resource-relative path onto the bundle entry, e.g.
+                        // ClinicalUseDefinition.indication -> Bundle.entry[i].resource.indication.
+                        rebaseLocation(mapped.fhirPath(), entryPath),
                         null,
                         null));
             }
         }
         return issues;
+    }
+
+    /** Re-anchors a resource-relative FHIRPath onto the bundle entry, falling back to the entry. */
+    private static String rebaseLocation(String resourceRelativePath, String entryPath) {
+        if (resourceRelativePath == null || !resourceRelativePath.startsWith("ClinicalUseDefinition")) {
+            return entryPath;
+        }
+        return entryPath + resourceRelativePath.substring("ClinicalUseDefinition".length());
     }
 
     /**
