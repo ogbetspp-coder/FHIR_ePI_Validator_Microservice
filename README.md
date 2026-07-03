@@ -157,15 +157,12 @@ What each flag is for:
 | `--concurrency=4` | Must equal `server.tomcat.threads.max` (4). See capacity below. |
 | `--ingress=internal --no-allow-unauthenticated` | No app-layer auth by design: gate with IAM + internal ingress. |
 
-- **Health / ports:** the app serves the API on Cloud Run's `$PORT` (8080) and puts health probes
-  on port 8081. Cloud Run's default startup check (TCP on the serving port) is enough, and
-  `--min-instances=1` means the warm-up is paid once. (Port 8081 is for GKE/Docker HTTP probes;
-  Cloud Run ignores it.)
-- **Capacity:** `max-body-mb` (8) x `concurrency` (4) must fit the heap. To accept larger bodies,
-  raise `--memory` and `EPI_VALIDATION_MAXBODYMB` together, or lower concurrency. Do not raise
-  concurrency without more memory - it can OOM.
-- **Config** via env vars (add `--set-env-vars`): `EPI_VALIDATION_MAXBODYMB`,
-  `EPI_VALIDATION_MAXBUNDLEENTRIES`.
+- **Ports:** the API serves on Cloud Run's `$PORT` (8080); health probes are on 8081. Cloud Run's
+  default TCP startup check suffices, and `--min-instances=1` pays the warm-up once. (8081 is for
+  GKE/Docker HTTP probes; Cloud Run ignores it.)
+- **Capacity:** `max-body-mb` (8) x `concurrency` (4) must fit the heap. For larger bodies, raise
+  `--memory` and `EPI_VALIDATION_MAXBODYMB` together (never concurrency alone). Tune via
+  `--set-env-vars EPI_VALIDATION_MAXBODYMB=...,EPI_VALIDATION_MAXBUNDLEENTRIES=...`.
 
 Auth, network posture, and tested threat cases are in [SECURITY.md](SECURITY.md).
 
