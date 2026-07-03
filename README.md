@@ -130,14 +130,27 @@ Auth is left to the platform (IAM/ingress) by design.
 
 ## Known limitations
 
-- Offline terminology: unknown code systems (EDQM, MedDRA, ATC, EMA SPOR) are downgraded to
-  warnings — they have no distributable offline representation.
+- Offline terminology: **codes are not verified against external terminologies** (SNOMED CT,
+  WHO ATC, MedDRA, EDQM, EMA SPOR, UNII) — those code systems are not distributable offline,
+  so a wrong code in one of them yields a *warning*, not an error. `PASS_WITH_WARNINGS` must not
+  be read as "terminology validated." Point `EPI_VALIDATION_REMOTETERMINOLOGY_*` at an internal
+  terminology server (Ontoserver/tx mirror) to restore strict code checking. (Codes in *known,
+  complete* code systems, e.g. FHIR core, are still validated and error normally.)
+- **ClinicalUseDefinition ePI sub-profiles** (indication / contraindication / interaction /
+  undesirable-effect / warning) are enforced only when the resource declares the corresponding
+  ePI `meta.profile`. A Type-3 bundle whose ClinicalUseDefinition entries omit `meta.profile` is
+  validated against base ClinicalUseDefinition only. `EPI-TYPE-001` still confirms clinical
+  content is *present*. Explicit per-resource sub-profile enforcement is the top phase-2 item.
 - Validates bundle conformance, **not medical correctness** of label content.
 - ePI type detection is a diagnostic heuristic; the type *contract* is enforced only for an
   explicitly requested `epiType`.
 - One IG target: `hl7.fhir.uv.emedicinal-product-info#1.0.0` (FHIR R5). Support for the ePI
   1.1.0 CI build's type-specific profiles, policy packs, warning allowlists, a Python SDK,
   and richer audit exist in this repo's git history and can return as phase 2.
+
+Request bodies are decoded by their declared charset (Content-Type `charset`, XML encoding
+declaration, or BOM; UTF-8 by default) so non-UTF-8 documents are validated as written; an
+undecodable body is rejected with 400 rather than silently corrupted.
 
 ## License
 

@@ -14,7 +14,11 @@ import java.util.Set;
 @Component
 public class EpiTypeDetector {
 
-    /** Clinical/knowledge resources that mark a Type 3 ePI (machine-readable clinical data). */
+    /**
+     * Clinical/knowledge resources that mark a Type 3 ePI (machine-readable clinical data).
+     * ClinicalUseDefinition is the definitive marker in the 1.0.0 IG; MedicationKnowledge is
+     * retained for forward-compatibility with the 1.1.0 line (detection is diagnostic-only).
+     */
     static final Set<String> TYPE_3_MARKERS = Set.of(
             "ClinicalUseDefinition",
             "MedicationKnowledge");

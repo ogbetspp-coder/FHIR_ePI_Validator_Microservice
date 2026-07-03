@@ -206,4 +206,78 @@ class ValidateApiIT {
         assertThat(rest.getForEntity("/api/v1/epi/manifest", String.class)
                 .getStatusCode().value()).isEqualTo(404);
     }
+
+    private ResponseEntity<String> postXml(String body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("application/fhir+xml"));
+        return rest.postForEntity("/api/v1/epi/validate?epiType=1", new HttpEntity<>(body, headers), String.class);
+    }
+
+    @Test
+    void xxeExternalEntityIsNotResolved() throws IOException {
+        java.nio.file.Path secret = java.nio.file.Files.createTempFile("epi-xxe", ".txt");
+        java.nio.file.Files.writeString(secret, "TOP-SECRET-DO-NOT-LEAK-8f3a");
+        try {
+            String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                    + "<!DOCTYPE Bundle [<!ENTITY xxe SYSTEM \"file://" + secret.toAbsolutePath() + "\">]>\n"
+                    + "<Bundle xmlns=\"http://hl7.org/fhir\"><type value=\"&xxe;\"/></Bundle>";
+            ResponseEntity<String> response = postXml(xml);
+            // External entities are disabled: the parse fails and the file content never leaks.
+            assertThat(response.getBody()).doesNotContain("TOP-SECRET-DO-NOT-LEAK");
+            assertThat(response.getStatusCode().value())
+                    .as("must be a parse failure, never a 200 that resolved the entity").isEqualTo(400);
+        } finally {
+            java.nio.file.Files.deleteIfExists(secret);
+        }
+    }
+
+    @Test
+    void xmlEntityExpansionIsRejectedQuickly() {
+        String bomb = "<?xml version=\"1.0\"?>\n<!DOCTYPE Bundle [\n"
+                + "<!ENTITY a \"aaaaaaaaaa\"><!ENTITY b \"&a;&a;&a;&a;&a;&a;&a;&a;&a;&a;\">\n"
+                + "<!ENTITY c \"&b;&b;&b;&b;&b;&b;&b;&b;&b;&b;\"><!ENTITY d \"&c;&c;&c;&c;&c;&c;&c;&c;&c;&c;\">\n"
+                + "<!ENTITY e \"&d;&d;&d;&d;&d;&d;&d;&d;&d;&d;\">]>\n"
+                + "<Bundle xmlns=\"http://hl7.org/fhir\"><type value=\"&e;\"/></Bundle>";
+        long start = System.nanoTime();
+        ResponseEntity<String> response = postXml(bomb);
+        long millis = (System.nanoTime() - start) / 1_000_000;
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(millis).as("entity expansion must be bounded, not expanded").isLessThan(5000);
+    }
+
+    @Test
+    void deeplyNestedJsonIsHandledNotCrashed() {
+        int depth = 4000;
+        String json = "{\"resourceType\":\"Bundle\",\"type\":\"document\",\"entry\":"
+                + "[{\"resource\":".repeat(depth) + "{}" + "}]".repeat(depth) + "}";
+        ResponseEntity<JsonNode> response = post("/api/v1/epi/validate?epiType=1", json, new HttpHeaders());
+        assertThat(response.getStatusCode().value()).as("handled, not a stack-overflow 500").isIn(400, 422);
+        // The service must remain healthy afterwards.
+        assertThat(rest.getForEntity("/api/v1/epi/info", String.class).getStatusCode().value()).isEqualTo(200);
+    }
+
+    @Test
+    void nonUtf8JsonIsRejectedNotSilentlyCorrupted() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("application/fhir+json"));
+        byte[] invalidUtf8 = {'{', (byte) 0x80, '}'};
+        ResponseEntity<JsonNode> response = rest.postForEntity("/api/v1/epi/validate?epiType=1",
+                new HttpEntity<>(invalidUtf8, headers), JsonNode.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    void iso8859XmlWithAccentsIsDecodedNotCorrupted() {
+        // Content declares its charset; the accented narrative must survive to the validator.
+        String xml = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
+                + "<Bundle xmlns=\"http://hl7.org/fhir\"><id value=\"café\"/><type value=\"document\"/></Bundle>";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("application/fhir+xml"));
+        ResponseEntity<JsonNode> response = rest.postForEntity("/api/v1/epi/validate?epiType=1",
+                new HttpEntity<>(xml.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1), headers),
+                JsonNode.class);
+        // Validation runs (verdict present) rather than failing to decode; content was not mangled.
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().path("verdict").asText()).isNotBlank();
+    }
 }

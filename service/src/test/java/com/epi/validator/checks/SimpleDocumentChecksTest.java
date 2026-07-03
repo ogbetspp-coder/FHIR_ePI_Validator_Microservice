@@ -85,6 +85,40 @@ class SimpleDocumentChecksTest {
     }
 
     @Test
+    void versionedReferenceResolves() {
+        // Organization/id/_history/v must resolve to the in-bundle Organization/id (no false FAIL).
+        Composition composition = new Composition();
+        composition.addAuthor(new Reference("Organization/organization-1/_history/3"));
+        Bundle bundle = documentBundle(composition, new Organization());
+        assertThat(ruleIds(checks.run(bundle, auto(bundle, detector))))
+                .doesNotContain("EPI-DOC-003");
+    }
+
+    @Test
+    void absoluteExternalReferenceIsNotFalselyResolvedByTailMatch() {
+        // An external absolute URL that merely shares a Type/id tail with an in-bundle resource
+        // must NOT be treated as resolved (that was a false PASS on a genuinely external ref).
+        Composition composition = new Composition();
+        composition.addAuthor(new Reference("https://external.example.com/fhir/Organization/organization-1"));
+        Bundle bundle = documentBundle(composition, new Organization());
+        assertThat(ruleIds(checks.run(bundle, auto(bundle, detector)))).contains("EPI-DOC-003");
+    }
+
+    @Test
+    void referencesInsideContainedResourcesAreOutOfScope() {
+        // A valid top-level ref resolves; a dangling ref inside a contained resource is skipped.
+        Composition composition = new Composition();
+        composition.addAuthor(new Reference("Organization/organization-1")); // valid, in-bundle
+        Organization contained = new Organization();
+        contained.setId("c1");
+        contained.setPartOf(new Reference("Organization/ghost-not-in-bundle")); // dangling, contained
+        composition.addContained(contained);
+        Bundle bundle = documentBundle(composition, new Organization());
+        assertThat(ruleIds(checks.run(bundle, auto(bundle, detector))))
+                .doesNotContain("EPI-DOC-003");
+    }
+
+    @Test
     void requestedType3WithoutClinicalContentFailsType001() {
         Bundle bundle = documentBundle(new Composition(), new MedicinalProductDefinition());
         TypeResolution types = TypeResolution.resolve("3", detector.detect(bundle));

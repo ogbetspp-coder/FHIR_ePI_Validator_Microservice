@@ -18,6 +18,7 @@ import com.epi.validator.model.ValidationResponse;
 import com.epi.validator.model.ValidatorInfo;
 import com.epi.validator.model.Verdict;
 import com.epi.validator.web.ApiException;
+import com.epi.validator.web.BodyDecoder;
 import com.epi.validator.web.UnparseableRequestException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +30,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -73,7 +73,9 @@ public class ValidationService {
 
     public ValidationResponse validate(byte[] body, String contentType, String epiTypeParam, String traceId) {
         String requestedType = normalizeRequestedType(epiTypeParam);
-        String raw = new String(body, StandardCharsets.UTF_8);
+        // Decode with the document's actual charset (Content-Type / XML declaration / BOM), not a
+        // hardcoded UTF-8, so a non-UTF-8 ePI is validated as written rather than corrupted.
+        String raw = BodyDecoder.decode(body, contentType);
 
         Bundle bundle = parseOrFail(raw, contentType, requestedType, body, traceId);
         TypeResolution types = TypeResolution.resolve(requestedType, typeDetector.detect(bundle));

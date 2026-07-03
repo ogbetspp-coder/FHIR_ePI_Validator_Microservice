@@ -1,5 +1,7 @@
 server:
   port: 8080
+  # Drain in-flight validations on SIGTERM (Cloud Run / K8s recycling) instead of dropping them.
+  shutdown: graceful
   tomcat:
     threads:
       # Bound concurrent validations so load cannot exhaust the heap (the resident validator
@@ -10,6 +12,9 @@ server:
 spring:
   application:
     name: epi-validator
+  lifecycle:
+    # Max wait for in-flight requests to finish during graceful shutdown (validations are <2s).
+    timeout-per-shutdown-phase: 20s
 
 management:
   endpoints:

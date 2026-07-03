@@ -33,8 +33,11 @@ COPY --from=build /workspace/extracted/spring-boot-loader/ ./
 COPY --from=build /workspace/extracted/snapshot-dependencies/ ./
 COPY --from=build /workspace/extracted/application/ ./
 
-# The validator (two IG chains + THO in memory) needs ~1.5 GB heap headroom: run with >= 2 GiB.
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
+# Memory (measured, one IG chain + terminology): steady working set ~800 MB heap, ~90 MB
+# metaspace. In a 2 GiB container, MaxRAMPercentage=60 caps heap at ~1.23 GB (~440 MB GC
+# headroom) and keeps resident set ~1.5 GB — ~530 MB margin under the limit. ExitOnOOM turns
+# any genuine exhaustion into a fast restart rather than a degraded, thrashing instance.
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60 -XX:MaxMetaspaceSize=192m -XX:+ExitOnOutOfMemoryError"
 EXPOSE 8080
 
 HEALTHCHECK --start-period=120s --interval=10s --timeout=3s --retries=6 \

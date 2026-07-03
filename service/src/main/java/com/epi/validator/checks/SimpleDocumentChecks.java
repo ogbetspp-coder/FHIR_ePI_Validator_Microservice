@@ -8,12 +8,16 @@ import com.epi.validator.model.Issue;
 import com.epi.validator.model.IssueSeverity;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.Composition;
+import org.hl7.fhir.r5.model.DomainResource;
 import org.hl7.fhir.r5.model.Reference;
 import org.hl7.fhir.r5.model.Resource;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -90,11 +94,10 @@ public class SimpleDocumentChecks {
             if (resource == null) {
                 continue;
             }
-            for (Reference ref : fhirContext.newTerser()
-                    .getAllPopulatedChildElementsOfType(resource, Reference.class)) {
+            for (Reference ref : outboundReferences(resource)) {
                 String value = ref.getReference();
                 if (value == null || value.startsWith("#")) {
-                    continue; // display-only or contained
+                    continue; // display-only, or a contained-local (#id) reference
                 }
                 if (!resolves(value, targets)) {
                     issues.add(error("EPI-DOC-003",
@@ -106,16 +109,35 @@ public class SimpleDocumentChecks {
         }
     }
 
+    /**
+     * References borne directly by the entry resource, excluding those inside its contained
+     * resources — a contained resource is a self-contained sub-document whose outbound
+     * references are out of scope for bundle-entry integrity (and would otherwise false-fail).
+     */
+    private Set<Reference> outboundReferences(Resource resource) {
+        Set<Reference> all = new LinkedHashSet<>(
+                fhirContext.newTerser().getAllPopulatedChildElementsOfType(resource, Reference.class));
+        if (resource instanceof DomainResource domain) {
+            Set<Reference> contained = Collections.newSetFromMap(new IdentityHashMap<>());
+            for (Resource c : domain.getContained()) {
+                contained.addAll(fhirContext.newTerser().getAllPopulatedChildElementsOfType(c, Reference.class));
+            }
+            all.removeIf(contained::contains);
+        }
+        return all;
+    }
+
     private static boolean resolves(String reference, Set<String> targets) {
-        if (targets.contains(reference)) {
-            return true;
+        // Normalize away any version suffix (Organization/1/_history/2 -> Organization/1).
+        String ref = reference;
+        int history = ref.indexOf("/_history/");
+        if (history >= 0) {
+            ref = ref.substring(0, history);
         }
-        // Absolute references may resolve to an entry whose fullUrl tail matches Type/id
-        String[] parts = reference.split("/");
-        if (parts.length >= 2) {
-            return targets.contains(parts[parts.length - 2] + "/" + parts[parts.length - 1]);
-        }
-        return false;
+        // Exact match only. An absolute reference (scheme://... or urn:...) must match an entry
+        // fullUrl exactly; a relative Type/id must match an entry's resource id. Never loose-match
+        // by URL tail — two different servers can share a Type/id and are NOT the same resource.
+        return targets.contains(ref);
     }
 
     private void checkTypeContract(Bundle bundle, TypeResolution types, List<Issue> issues) {
