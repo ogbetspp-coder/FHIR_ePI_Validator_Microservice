@@ -207,6 +207,25 @@ python3 examples/validate_bundle.py path/to/your-bundle.json --epi-type 1 --base
 For an authenticated instance (`OPEN=0`), add `-H "Authorization: Bearer $(gcloud auth print-identity-token)"`
 to your `curl` calls; `validate_bundle.py` itself sends no auth header.
 
+### Show it to colleagues
+
+`examples/demo.sh` runs a short, narrated pass/fail sequence against a running instance. Point it
+at your Cloud Run URL:
+
+```bash
+./examples/demo.sh https://epi-validator-XXXX-ew.a.run.app
+```
+
+It walks through three cases: a valid leaflet (PASS_WITH_WARNINGS), the same leaflet with two
+AI-style defects (FAIL, each located by line), and the leaflet mislabelled as Type 3 (FAIL, type
+contract rejected). `good-bundle.json` and `broken-bundle.json` are the official HL7 Type 1
+example, cleaned and defect-seeded respectively.
+
+The three unmodified official IG examples are in `examples/ig/` (Type 1, 2, and 3). Run as-is they
+all FAIL, because they contain real reference and narrative defects the official engine flags,
+which is a good way to show the validator earns its keep even on the reference examples. See
+`examples/ig/README.md`.
+
 ## Local development
 
 Prerequisites: Docker for the container path; Java 21 + Maven 3.9+ for local builds. No network
