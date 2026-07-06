@@ -124,6 +124,9 @@ Four layers, merged into one `issues` list:
 Everything runs **offline**: IG packages are vendored into the image and SHA-256-pinned in
 `tools/packages.lock.json`. No network at build or runtime.
 
+Full catalog of issue types, severities, sources, the fixed `EPI-*` rules, the engine check
+categories, and HTTP status codes: [docs/VALIDATION.md](docs/VALIDATION.md).
+
 ## Deploy to Google Cloud Run
 
 Prerequisites: the `gcloud` CLI and a GCP project. The build runs in Cloud Build, so you do not
