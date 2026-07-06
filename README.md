@@ -90,6 +90,10 @@ never reached validation: 400 unparseable body (you still get the envelope, verd
 Verdict: any error -> `FAIL`; any warning and no error -> `PASS_WITH_WARNINGS`; otherwise `PASS`.
 Each issue's `source` is `parser`, `hapi-validator`, `simple-check`, or `clinical-profile`.
 
+`PASS_WITH_WARNINGS` is not an approval. It means no structural or profile errors, with warnings
+remaining (usually offline terminology). Your workflow decides whether warnings block, route to
+human review, or pass.
+
 ### `GET /api/v1/epi/info`
 
 `{fhirVersion, hapiVersion, igPackage, igVersion, ready}` - which validator you are talking to.
@@ -121,11 +125,14 @@ Four layers, merged into one `issues` list:
    validated against the ePI sub-profile for its type, even when the resource omits `meta.profile`.
    Without this, an AI-generated Type 3 bundle could skip the constraints that define Type 3.
 
-Everything runs **offline**: IG packages are vendored into the image and SHA-256-pinned in
-`tools/packages.lock.json`. No network at build or runtime.
+**Runtime validation is fully offline**: IG packages are vendored into the image and SHA-256-pinned
+in `tools/packages.lock.json`, and validation makes no outbound calls. Two deliberate exceptions:
+the Docker build resolves Maven dependencies (Maven Central), and the CI cross-check job downloads
+the official validator's packages. Neither touches the running service.
 
 Full catalog of issue types, severities, sources, the fixed `EPI-*` rules, the engine check
-categories, and HTTP status codes: [docs/VALIDATION.md](docs/VALIDATION.md).
+categories, and HTTP status codes: [docs/VALIDATION.md](docs/VALIDATION.md). Handover notes,
+runbook, and checklists: [docs/ENGINEERING_HANDOVER.md](docs/ENGINEERING_HANDOVER.md).
 
 ## Deploy to Google Cloud Run
 
@@ -190,7 +197,9 @@ What each flag is for:
   GKE/Docker HTTP probes; Cloud Run ignores it.)
 - **Capacity:** `max-body-mb` (8) x `concurrency` (4) must fit the heap. For larger bodies, raise
   `--memory` and `EPI_VALIDATION_MAXBODYMB` together (never concurrency alone). Tune via
-  `--set-env-vars EPI_VALIDATION_MAXBODYMB=...,EPI_VALIDATION_MAXBUNDLEENTRIES=...`.
+  `--set-env-vars EPI_VALIDATION_MAXBODYMB=...,EPI_VALIDATION_MAXBUNDLEENTRIES=...`. The Tomcat
+  pool is overridable with `SERVER_TOMCAT_THREADS_MAX`; if you raise it, set `--concurrency` to the
+  same value and redo the memory math.
 
 Auth, network posture, and tested threat cases are in [SECURITY.md](SECURITY.md).
 
@@ -215,8 +224,9 @@ to your `curl` calls; `validate_bundle.py` itself sends no auth header.
 The service root (`/`) serves a small self-contained web UI. Pick a type (1, 2, or 3) and
 correct or incorrect to load a matching sample and validate it, or paste your own bundle and click
 Validate. It shows the verdict with each error and warning located by line. It is a single static
-file served by the app (no CDN, no external calls, same-origin with the API), so it works on a
-locked-down or offline instance. Open the Cloud Run URL in a browser.
+file served by the app (no CDN, no external calls, same-origin with the API). Open the Cloud Run
+URL in a browser. The UI is a demo surface: on a locked-down deployment (`OPEN=0`) it sits behind
+IAM and sends no auth headers, so treat the JSON API as the production interface.
 
 `examples/demo.sh` runs the same three cases from the terminal. Point it at your Cloud Run URL:
 
@@ -239,6 +249,7 @@ which is a good way to show the validator earns its keep even on the reference e
 `.github/workflows/deploy.yml` builds and deploys to Cloud Run on every push to `main` (and on
 manual dispatch), with no service-account keys, using Workload Identity Federation. It deploys a
 locked-down service (internal ingress, IAM only); for a public demo use `deploy/cloudrun.sh`.
+Both CI and deploy trigger on `main`, so they activate once this branch is merged.
 
 One-time setup, run once by a project owner (replace `REPO` with your `owner/repo`):
 
@@ -277,8 +288,8 @@ and `GCP_WIF_PROVIDER` (printed by the last command). Pushes to `main` now deplo
 
 ## Local development
 
-Prerequisites: Docker for the container path; Java 21 + Maven 3.9+ for local builds. No network
-(IG packages are vendored).
+Prerequisites: Docker for the container path; Java 21 + Maven 3.9+ for local builds. IG packages
+are vendored; the first build fetches Maven dependencies, after that everything runs offline.
 
 ```bash
 make build        # compile + run the full offline test suite (unit + integration)

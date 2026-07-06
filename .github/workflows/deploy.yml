@@ -46,3 +46,14 @@ jobs:
             --image "${IMAGE}" --region "${REGION}" \
             --memory 2Gi --cpu 2 --cpu-boost --min-instances 1 --concurrency 4 \
             --ingress internal --no-allow-unauthenticated
+
+      # gcloud run deploy already fails if the container cannot start; this asserts the service
+      # reports Ready and is routing to the new revision. (Internal ingress means the runner
+      # cannot curl the endpoint itself.)
+      - name: Verify service is Ready
+        run: |
+          gcloud run services describe "${SERVICE}" --project "${{ vars.GCP_PROJECT }}" \
+            --region "${REGION}" --format json \
+            | jq -e '.status.conditions[] | select(.type == "Ready" and .status == "True")'
+          gcloud run services describe "${SERVICE}" --project "${{ vars.GCP_PROJECT }}" \
+            --region "${REGION}" --format 'value(status.url, status.latestReadyRevisionName)'

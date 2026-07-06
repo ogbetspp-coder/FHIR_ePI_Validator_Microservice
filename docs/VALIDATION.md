@@ -18,6 +18,10 @@ Every issue has a severity. The verdict is derived from the merged issue list:
 HTTP status is `200` whenever validation ran, whatever the verdict. Gate on `verdict`, never on the
 HTTP status.
 
+`PASS_WITH_WARNINGS` is not an approval. It means no structural or profile errors, with warnings
+remaining (usually offline terminology, see below). The consuming workflow must define whether
+warnings block commit, route to review, or pass.
+
 ## Severities
 
 | Severity | Meaning | Verdict impact |
@@ -54,6 +58,9 @@ on them.
 
 Notes:
 
+- Only these `EPI-*` rule ids are project-owned and stable. `hapi-validator` ruleIds are engine
+  diagnostics that can change across engine versions; do not build long-term workflow logic on
+  them.
 - `EPI-TYPE-*` fire only for an explicitly requested `epiType` (1, 2, or 3). With `epiType=auto`
   there is no contract to enforce, and `auto` never downgrades an explicit request.
 - `EPI-CUD-PROFILE` validates every `ClinicalUseDefinition` against its type-specific ePI

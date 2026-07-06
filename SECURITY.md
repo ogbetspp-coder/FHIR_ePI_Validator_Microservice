@@ -2,14 +2,19 @@
 
 ## Reporting a vulnerability
 
-Report suspected vulnerabilities privately to the maintaining team. Replace this with your
-internal security contact and process before external distribution. Do not open public issues for
-security reports.
+HANDOVER NOTE: the receiving organization must set its own vulnerability reporting contact and
+process here before internal release. Until then, report suspected vulnerabilities privately to
+the team that handed over this repository. Do not open public issues for security reports.
 
 ## Posture
 
 This service is a stateless validation gate. It has no database, no persistence, and no user data
-at rest. It runs fully offline.
+at rest. Validation runs fully offline (the Docker build itself resolves Maven dependencies; see
+the README).
+
+There is no application-layer authentication by design. Production deployments must sit behind
+platform controls: Cloud Run internal ingress with an IAM invoker, or an API gateway. Never expose
+the service directly to the public internet outside a throwaway demo.
 
 | Control | Implementation |
 |---|---|
