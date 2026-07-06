@@ -5,6 +5,11 @@
 #   gcloud builds submit . --config deploy/cloudbuild.yaml --substitutions _IMAGE=<image>
 steps:
   - name: gcr.io/cloud-builders/docker
+    # DOCKER_BUILDKIT=0 forces the classic builder, which produces a single linux/amd64
+    # image manifest. With BuildKit on, the build attaches provenance/attestation manifests
+    # and pushes an OCI image index; Cloud Run cannot start such an image and fails with
+    # "container failed to start and listen on PORT" and no application logs.
+    env: ["DOCKER_BUILDKIT=0"]
     args: ["build", "-t", "${_IMAGE}", "-f", "service/Dockerfile", "."]
 images: ["${_IMAGE}"]
 options:

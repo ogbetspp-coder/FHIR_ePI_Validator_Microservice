@@ -82,11 +82,19 @@ if [ "${OPEN}" = "1" ]; then
 else
   ACCESS=(--ingress=internal --no-allow-unauthenticated)  # gate with IAM instead
 fi
-gcloud run deploy "${SERVICE}" \
+if ! gcloud run deploy "${SERVICE}" \
   --image="${IMAGE}" --region="${REGION}" \
   --memory=2Gi --cpu=2 --cpu-boost \
   --min-instances=1 --concurrency=4 \
-  "${ACCESS[@]}"
+  "${ACCESS[@]}"; then
+  echo "" >&2
+  echo "Deploy failed. Most recent container logs (the real reason is usually here):" >&2
+  gcloud logging read \
+    "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"${SERVICE}\"" \
+    --limit=25 --freshness=1h --order=asc \
+    --format='value(textPayload)' >&2 || true
+  exit 1
+fi
 
 URL="$(gcloud run services describe "${SERVICE}" --region="${REGION}" --format='value(status.url)')"
 [ -n "${URL}" ] || { echo "ERROR: could not read the service URL; see the deploy output above." >&2; exit 1; }
