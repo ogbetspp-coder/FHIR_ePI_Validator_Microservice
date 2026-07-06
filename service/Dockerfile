@@ -1,5 +1,5 @@
 # Build context is the REPO ROOT (docker build -f service/Dockerfile .) so the image can seal
-# tools/packages.lock.json (audit manifest source) alongside the vendored IG packages.
+# tools/packages.lock.json alongside the vendored IG packages.
 # No network is needed at runtime; only Maven Central is touched at build time.
 
 # ---- Stage 1: build -------------------------------------------------------------------
@@ -12,10 +12,7 @@ RUN mvn -B -q -f service/pom.xml dependency:go-offline
 
 COPY tools/packages.lock.json tools/packages.lock.json
 COPY service/src service/src
-# .git is intentionally NOT copied; the build manifest falls back to buildId=unknown here.
-# CI stamps the image tag with the commit SHA instead.
-RUN mvn -B -q -f service/pom.xml package -DskipTests \
-    && java -Djarmode=tools -jar service/target/epi-validator-*.jar extract --layers --destination /workspace/extracted
+RUN mvn -B -q -f service/pom.xml package -DskipTests
 
 # ---- Stage 2: runtime -----------------------------------------------------------------
 FROM eclipse-temurin:21-jre-jammy
@@ -27,11 +24,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 USER 10001
 WORKDIR /app
 
-# Layer order: least -> most volatile for image layer caching
-COPY --from=build /workspace/extracted/dependencies/ ./
-COPY --from=build /workspace/extracted/spring-boot-loader/ ./
-COPY --from=build /workspace/extracted/snapshot-dependencies/ ./
-COPY --from=build /workspace/extracted/application/ ./
+# Run the Spring Boot fat jar directly. Its own manifest names the correct launcher for this
+# Boot version, so there is no dependence on exploded-layer layout or classpath assembly. That
+# layered-extraction approach is sensitive to the Docker builder and produced an image whose
+# launcher class was missing, so Cloud Run crashed on start with ClassNotFoundException.
+COPY --from=build /workspace/service/target/epi-validator-*.jar /app/app.jar
 
 # Memory (measured, one IG chain + terminology): steady working set ~800 MB heap, ~90 MB
 # metaspace. In a 2 GiB container, MaxRAMPercentage=60 caps heap at ~1.23 GB (~440 MB GC
@@ -48,4 +45,4 @@ EXPOSE 8080 8081
 HEALTHCHECK --start-period=120s --interval=10s --timeout=5s --retries=6 \
     CMD curl -fsS http://localhost:8081/actuator/health/readiness || exit 1
 
-ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

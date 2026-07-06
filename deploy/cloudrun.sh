@@ -55,8 +55,12 @@ gcloud artifacts repositories describe "${REPO}" --location="${REGION}" >/dev/nu
        --repository-format=docker --location="${REGION}" \
        --description="FHIR ePI validator images"
 
-# [2/4] Build and push the image.
-if [ "${USE_DOCKER}" = "1" ]; then
+# [2/4] Build and push the image, unless this exact tag is already in the registry. The build
+# runs on Cloud Build (server-side) and finishes even if your shell disconnects, so a re-run
+# then skips straight to deploy instead of rebuilding.
+if gcloud artifacts docker images describe "${IMAGE}" --format='value(image_summary.digest)' >/dev/null 2>&1; then
+  echo "==> [2/4] Image ${IMAGE} already in the registry; skipping build"
+elif [ "${USE_DOCKER}" = "1" ]; then
   echo "==> [2/4] Building and pushing locally with Docker"
   gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
   docker build -t "${IMAGE}" -f service/Dockerfile .
