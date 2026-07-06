@@ -1,0 +1,48 @@
+name: Deploy to Cloud Run
+
+# Continuous deployment with no service-account keys (Workload Identity Federation).
+# One-time setup is in the README ("Continuous deployment"). Deploys a locked-down service
+# (internal ingress, IAM only); for a public demo use deploy/cloudrun.sh instead.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # required for keyless auth to GCP
+
+env:
+  REGION: europe-west1
+  REPO: epi
+  SERVICE: epi-validator
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # Build and push server-side. cloudbuild.yaml forces the classic builder, so the image is a
+      # plain single-arch manifest Cloud Run can start (see that file for why this matters).
+      - name: Build and push image
+        run: |
+          IMAGE="${REGION}-docker.pkg.dev/${{ vars.GCP_PROJECT }}/${REPO}/${SERVICE}:${GITHUB_SHA::7}"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+          gcloud builds submit . --project "${{ vars.GCP_PROJECT }}" \
+            --config deploy/cloudbuild.yaml --substitutions "_IMAGE=$IMAGE"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "${SERVICE}" --project "${{ vars.GCP_PROJECT }}" \
+            --image "${IMAGE}" --region "${REGION}" \
+            --memory 2Gi --cpu 2 --cpu-boost --min-instances 1 --concurrency 4 \
+            --ingress internal --no-allow-unauthenticated

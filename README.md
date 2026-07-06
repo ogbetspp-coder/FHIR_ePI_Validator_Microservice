@@ -231,6 +231,47 @@ all FAIL, because they contain real reference and narrative defects the official
 which is a good way to show the validator earns its keep even on the reference examples. See
 `examples/ig/README.md`.
 
+## Continuous deployment (GitHub Actions)
+
+`.github/workflows/deploy.yml` builds and deploys to Cloud Run on every push to `main` (and on
+manual dispatch), with no service-account keys, using Workload Identity Federation. It deploys a
+locked-down service (internal ingress, IAM only); for a public demo use `deploy/cloudrun.sh`.
+
+One-time setup, run once by a project owner (replace `REPO` with your `owner/repo`):
+
+```bash
+PROJECT=your-project;  REGION=europe-west1;  REPO=your-org/your-repo
+NUM=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
+
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com --project "$PROJECT"
+gcloud artifacts repositories create epi --project "$PROJECT" --repository-format=docker --location "$REGION" 2>/dev/null || true
+
+# Deployer service account + the roles a build-and-deploy needs
+gcloud iam service-accounts create epi-deployer --project "$PROJECT" --display-name "ePI CD"
+SA="epi-deployer@$PROJECT.iam.gserviceaccount.com"
+for r in run.admin cloudbuild.builds.editor artifactregistry.writer iam.serviceAccountUser storage.admin; do
+  gcloud projects add-iam-policy-binding "$PROJECT" --member "serviceAccount:$SA" --role "roles/$r"; done
+# Cloud Build runs as the Compute Engine default SA; grant it what a build needs
+for r in cloudbuild.builds.builder artifactregistry.writer logging.logWriter; do
+  gcloud projects add-iam-policy-binding "$PROJECT" --member "serviceAccount:$NUM-compute@developer.gserviceaccount.com" --role "roles/$r"; done
+
+# Workload Identity pool + provider that trusts this GitHub repo, then let it impersonate the SA
+gcloud iam workload-identity-pools create github --project "$PROJECT" --location global
+gcloud iam workload-identity-pools providers create-oidc github --project "$PROJECT" --location global \
+  --workload-identity-pool github --issuer-uri "https://token.actions.githubusercontent.com" \
+  --attribute-mapping "google.subject=assertion.sub,attribute.repository=assertion.repository" \
+  --attribute-condition "assertion.repository=='$REPO'"
+POOL=$(gcloud iam workload-identity-pools describe github --project "$PROJECT" --location global --format='value(name)')
+gcloud iam service-accounts add-iam-policy-binding "$SA" --project "$PROJECT" \
+  --role roles/iam.workloadIdentityUser \
+  --member "principalSet://iam.googleapis.com/$POOL/attribute.repository/$REPO"
+echo "GCP_WIF_PROVIDER=$POOL/providers/github"
+```
+
+Then in GitHub, under Settings -> Secrets and variables -> Actions -> Variables, add three
+repository variables: `GCP_PROJECT` (project id), `GCP_DEPLOY_SA` (the `epi-deployer@...` email),
+and `GCP_WIF_PROVIDER` (printed by the last command). Pushes to `main` now deploy automatically.
+
 ## Local development
 
 Prerequisites: Docker for the container path; Java 21 + Maven 3.9+ for local builds. No network
