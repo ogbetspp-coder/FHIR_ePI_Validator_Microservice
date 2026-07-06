@@ -126,8 +126,25 @@ Everything runs **offline**: IG packages are vendored into the image and SHA-256
 
 ## Deploy to Google Cloud Run
 
-Prerequisites: the `gcloud` CLI, Docker, and a GCP project (the image repo and APIs are created in
-step 0).
+Prerequisites: the `gcloud` CLI and a GCP project. The build runs in Cloud Build, so you do not
+need local Docker (this is what makes it work cleanly in Cloud Shell).
+
+One command builds the image, deploys it, and smoke-tests it with the sample bundles:
+
+```bash
+gcloud config set project YOUR_PROJECT_ID
+./deploy/cloudrun.sh
+```
+
+It enables the APIs, creates the image repo if needed, builds and pushes with Cloud Build,
+deploys to Cloud Run, waits for warm-up, then prints the verdicts for the good and broken
+bundles. Override defaults by exporting env vars first: `REGION` (default `europe-west1`),
+`REPO`, `SERVICE`, `OPEN=0` (IAM-only instead of a public demo), `USE_DOCKER=1` (build locally
+instead of Cloud Build). Delete the demo when done:
+`gcloud run services delete epi-validator --region=europe-west1`.
+
+<details>
+<summary>Prefer to run the steps by hand? Expand.</summary>
 
 ```bash
 # Set these for your environment
@@ -152,6 +169,7 @@ gcloud run deploy epi-validator \
   --min-instances=1 --concurrency=4 \
   --ingress=internal --no-allow-unauthenticated
 ```
+</details>
 
 What each flag is for:
 
@@ -172,29 +190,21 @@ What each flag is for:
 
 Auth, network posture, and tested threat cases are in [SECURITY.md](SECURITY.md).
 
-### Demo it (feed test data, see the outcomes)
+### Demo on your own data
 
-For a throwaway demo, deploy it reachable and open (lock down or delete afterwards), then feed the
-sample bundles and watch the verdicts. `validate_bundle.py` needs only Python 3 (stdlib), and its
-`--base-url` points it at the Cloud Run URL:
+`./deploy/cloudrun.sh` already deploys an open instance and runs the three sample validations:
+the good bundle (PASS_WITH_WARNINGS), the broken bundle (FAIL, each error located), and the good
+bundle mislabelled as Type 3 (FAIL, EPI-TYPE-001 catches it). To validate one of your pipeline's
+own bundles against the running service, point `validate_bundle.py` at its URL (Python 3 only, no
+dependencies):
 
 ```bash
-gcloud run deploy epi-validator --image="$IMAGE" --region="$REGION" \
-  --memory=2Gi --cpu=2 --cpu-boost --min-instances=1 --concurrency=4 \
-  --ingress=all --allow-unauthenticated
-
-URL=$(gcloud run services describe epi-validator --region="$REGION" --format='value(status.url)')
-curl -s "$URL/api/v1/epi/info"        # {"...","ready": true} once warm (first warm-up ~30-60 s)
-
-# Feed the fixtures and read the outcomes:
-python3 examples/validate_bundle.py examples/good-bundle.json   --epi-type 1 --base-url "$URL"  # -> PASS_WITH_WARNINGS
-python3 examples/validate_bundle.py examples/broken-bundle.json --epi-type 1 --base-url "$URL"  # -> FAIL, each error located
-python3 examples/validate_bundle.py examples/good-bundle.json   --epi-type 3 --base-url "$URL"  # -> FAIL, EPI-TYPE-001 (mislabel caught)
+URL=$(gcloud run services describe epi-validator --region=europe-west1 --format='value(status.url)')
+python3 examples/validate_bundle.py path/to/your-bundle.json --epi-type 1 --base-url "$URL"
 ```
 
-To keep the demo instance authenticated instead, drop `--allow-unauthenticated` and call it with
-`curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" ...` (the script does not add
-auth headers). Swap in one of your pipeline's own generated bundles for a demo on real data.
+For an authenticated instance (`OPEN=0`), add `-H "Authorization: Bearer $(gcloud auth print-identity-token)"`
+to your `curl` calls; `validate_bundle.py` itself sends no auth header.
 
 ## Local development
 

@@ -1,0 +1,9 @@
+# Cloud Build config: build the image from service/Dockerfile with the repo root as the
+# build context, then push it to Artifact Registry. Building server-side means no local
+# Docker and no push from your shell (the usual Cloud Shell failure point).
+# Invoked by deploy/cloudrun.sh:
+#   gcloud builds submit . --config deploy/cloudbuild.yaml --substitutions _IMAGE=<image>
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-t", "${_IMAGE}", "-f", "service/Dockerfile", "."]
+images: ["${_IMAGE}"]
