@@ -209,8 +209,12 @@ to your `curl` calls; `validate_bundle.py` itself sends no auth header.
 
 ### Show it to colleagues
 
-`examples/demo.sh` runs a short, narrated pass/fail sequence against a running instance. Point it
-at your Cloud Run URL:
+The service root (`/`) serves a small self-contained web UI: paste a bundle or click a sample,
+pick the `epiType`, and see the verdict with each issue located. It is a single static file served
+by the app (no CDN, no external calls, same-origin with the API), so it works on a locked-down or
+offline instance. Open the Cloud Run URL in a browser.
+
+`examples/demo.sh` runs the same three cases from the terminal. Point it at your Cloud Run URL:
 
 ```bash
 ./examples/demo.sh https://epi-validator-XXXX-ew.a.run.app

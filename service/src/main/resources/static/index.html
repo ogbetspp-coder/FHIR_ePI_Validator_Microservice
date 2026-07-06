@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FHIR ePI Validator</title>
+<style>
+  :root {
+    --bg: #f6f8fa; --panel: #ffffff; --ink: #1f2328; --muted: #656d76; --line: #d0d7de;
+    --accent: #0969da; --code: #eff1f3;
+    --pass-fg: #1a7f37; --pass-bg: #e6f4ea; --warn-fg: #9a6700; --warn-bg: #fff8e1;
+    --fail-fg: #cf222e; --fail-bg: #ffebe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --panel: #161b22; --ink: #e6edf3; --muted: #8b949e; --line: #30363d;
+      --accent: #4493f8; --code: #0b0f14;
+      --pass-bg: #12261a; --warn-bg: #2b2411; --fail-bg: #2b1416;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 20px; margin: 0 0 2px; }
+  .sub { color: var(--muted); margin: 0 0 14px; }
+  .chip {
+    display: inline-block; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; color: var(--muted);
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  label { color: var(--muted); font-size: 13px; }
+  select, textarea, button {
+    font: inherit; color: var(--ink); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+  }
+  textarea { width: 100%; height: 340px; resize: vertical; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .samples button { font-size: 13px; }
+  .verdict { border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; font-weight: 600; border: 1px solid var(--line); }
+  .verdict small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  .PASS { color: var(--pass-fg); background: var(--pass-bg); }
+  .PASS_WITH_WARNINGS { color: var(--warn-fg); background: var(--warn-bg); }
+  .FAIL { color: var(--fail-fg); background: var(--fail-bg); }
+  .issue { border-left: 3px solid var(--line); padding: 8px 10px; margin: 8px 0; background: var(--code); border-radius: 0 8px 8px 0; }
+  .issue.error, .issue.fatal { border-left-color: var(--fail-fg); }
+  .issue.warning { border-left-color: var(--warn-fg); }
+  .issue.information { border-left-color: var(--accent); }
+  .issue .meta { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); margin-bottom: 2px; }
+  .issue .msg { font-size: 14px; }
+  .sev { font-weight: 700; text-transform: uppercase; }
+  .sev.error, .sev.fatal { color: var(--fail-fg); }
+  .sev.warning { color: var(--warn-fg); }
+  .sev.information { color: var(--accent); }
+  .placeholder { color: var(--muted); }
+  footer { color: var(--muted); font-size: 13px; margin-top: 24px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>FHIR ePI Validator</h1>
+  <p class="sub">Checks a FHIR ePI Bundle against FHIR R5 and the pinned HL7 ePI Implementation Guide, using the official HAPI validator.</p>
+  <span class="chip" id="identity">connecting...</span>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Input</h2>
+      <div class="row samples">
+        <label>Try:</label>
+        <button data-file="good.json"   data-type="1">Valid leaflet</button>
+        <button data-file="broken.json" data-type="1">Broken leaflet</button>
+        <button data-file="good.json"   data-type="3">Valid leaflet as Type 3</button>
+      </div>
+      <div class="row">
+        <label for="epiType">epiType</label>
+        <select id="epiType">
+          <option value="auto">auto</option>
+          <option value="1" selected>1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+        <button class="primary" id="validate">Validate</button>
+      </div>
+      <textarea id="body" spellcheck="false" placeholder="Paste a FHIR ePI Bundle (JSON), or click a sample above."></textarea>
+    </div>
+
+    <div class="panel">
+      <h2>Result</h2>
+      <div id="result"><p class="placeholder">Load a sample or paste a bundle, then Validate.</p></div>
+    </div>
+  </div>
+
+  <footer>
+    Same engine as validator.fhir.org, running offline against a SHA-256-pinned IG package.
+    Machine-readable identity at <a href="/api/v1/epi/info">/api/v1/epi/info</a>.
+  </footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+  async function loadIdentity() {
+    try {
+      const r = await fetch('/api/v1/epi/info');
+      const i = await r.json();
+      $('identity').textContent =
+        `HAPI ${i.hapiVersion} | FHIR ${i.fhirVersion} | ${i.igPackage} ${i.igVersion} | ${i.ready ? 'ready' : 'warming up'}`;
+    } catch (e) { $('identity').textContent = 'validator unreachable'; }
+  }
+
+  async function loadSample(file, type) {
+    const r = await fetch('/samples/' + file);
+    $('body').value = await r.text();
+    $('epiType').value = type;
+    validate();
+  }
+
+  function render(env) {
+    const v = env.verdict || 'FAIL';
+    const issues = Array.isArray(env.issues) ? env.issues : [];
+    const errors = issues.filter(i => i.severity === 'error' || i.severity === 'fatal').length;
+    const warnings = issues.filter(i => i.severity === 'warning').length;
+    let html = `<div class="verdict ${esc(v)}">${esc(v)}`
+      + `<small>requested ${esc(env.requestedEpiType)} | detected ${esc(env.detectedEpiType)}`
+      + ` | effective ${esc(env.effectiveEpiType)} | ${errors} error(s), ${warnings} warning(s)</small></div>`;
+    if (!issues.length) {
+      html += '<p class="placeholder">No issues reported.</p>';
+    } else {
+      for (const i of issues) {
+        const loc = [i.fhirPath, i.line ? 'line ' + i.line : ''].filter(Boolean).join(' | ');
+        html += `<div class="issue ${esc(i.severity)}">`
+          + `<div class="meta"><span class="sev ${esc(i.severity)}">${esc(i.severity)}</span>`
+          + ` | ${esc(i.source || '')}${loc ? ' | ' + esc(loc) : ''}</div>`
+          + `<div class="msg">${esc(i.message || '')}</div></div>`;
+      }
+    }
+    $('result').innerHTML = html;
+  }
+
+  async function validate() {
+    const body = $('body').value.trim();
+    if (!body) { $('result').innerHTML = '<p class="placeholder">Nothing to validate: paste a bundle or pick a sample.</p>'; return; }
+    $('result').innerHTML = '<p class="placeholder">Validating...</p>';
+    try {
+      const r = await fetch('/api/v1/epi/validate?epiType=' + encodeURIComponent($('epiType').value), {
+        method: 'POST', headers: { 'Content-Type': 'application/fhir+json' }, body
+      });
+      const text = await r.text();
+      let env;
+      try { env = JSON.parse(text); } catch (_) {
+        $('result').innerHTML = `<p class="placeholder">HTTP ${r.status}: ${esc(text.slice(0, 400))}</p>`; return;
+      }
+      render(env);
+    } catch (e) {
+      $('result').innerHTML = `<p class="placeholder">Request failed: ${esc(e.message)}</p>`;
+    }
+  }
+
+  document.querySelectorAll('.samples button').forEach(b =>
+    b.addEventListener('click', () => loadSample(b.dataset.file, b.dataset.type)));
+  $('validate').addEventListener('click', validate);
+  loadIdentity();
+</script>
+</body>
+</html>
