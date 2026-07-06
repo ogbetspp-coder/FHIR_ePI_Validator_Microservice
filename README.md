@@ -166,6 +166,30 @@ What each flag is for:
 
 Auth, network posture, and tested threat cases are in [SECURITY.md](SECURITY.md).
 
+### Demo it (feed test data, see the outcomes)
+
+For a throwaway demo, deploy it reachable and open (lock down or delete afterwards), then feed the
+sample bundles and watch the verdicts. `validate_bundle.py` needs only Python 3 (stdlib), and its
+`--base-url` points it at the Cloud Run URL:
+
+```bash
+gcloud run deploy epi-validator --image="$IMAGE" --region="$REGION" \
+  --memory=2Gi --cpu=2 --cpu-boost --min-instances=1 --concurrency=4 \
+  --ingress=all --allow-unauthenticated
+
+URL=$(gcloud run services describe epi-validator --region="$REGION" --format='value(status.url)')
+curl -s "$URL/api/v1/epi/info"        # {"...","ready": true} once warm (first warm-up ~30-60 s)
+
+# Feed the fixtures and read the outcomes:
+python3 examples/validate_bundle.py examples/good-bundle.json   --epi-type 1 --base-url "$URL"  # -> PASS_WITH_WARNINGS
+python3 examples/validate_bundle.py examples/broken-bundle.json --epi-type 1 --base-url "$URL"  # -> FAIL, each error located
+python3 examples/validate_bundle.py examples/good-bundle.json   --epi-type 3 --base-url "$URL"  # -> FAIL, EPI-TYPE-001 (mislabel caught)
+```
+
+To keep the demo instance authenticated instead, drop `--allow-unauthenticated` and call it with
+`curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" ...` (the script does not add
+auth headers). Swap in one of your pipeline's own generated bundles for a demo on real data.
+
 ## Local development
 
 Prerequisites: Docker for the container path; Java 21 + Maven 3.9+ for local builds. No network
