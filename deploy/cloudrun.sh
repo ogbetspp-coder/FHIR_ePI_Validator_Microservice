@@ -36,9 +36,20 @@ echo "==> Project ${PROJECT} | Region ${REGION}"
 echo "==> Image   ${IMAGE}"
 gcloud config set project "${PROJECT}" >/dev/null
 
-# [1/4] Enable the APIs and make sure the image repo exists. Both steps are idempotent.
-echo "==> [1/4] Enabling APIs and ensuring the image repo exists"
-gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com
+# [1/4] Enable only the APIs that are not already on, and make sure the image repo exists.
+# The checks are reads; only genuinely missing items issue a mutate, so re-runs stay well
+# under the per-minute mutate quota.
+echo "==> [1/4] Ensuring APIs are enabled and the image repo exists"
+enabled="$(gcloud services list --enabled --format='value(config.name)' 2>/dev/null || true)"
+to_enable=""
+for svc in run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com; do
+  case " ${enabled} " in *" ${svc} "*) : ;; *) to_enable="${to_enable} ${svc}" ;; esac
+done
+if [ -n "${to_enable# }" ]; then
+  gcloud services enable ${to_enable}
+else
+  echo "    APIs already enabled."
+fi
 gcloud artifacts repositories describe "${REPO}" --location="${REGION}" >/dev/null 2>&1 \
   || gcloud artifacts repositories create "${REPO}" \
        --repository-format=docker --location="${REGION}" \
