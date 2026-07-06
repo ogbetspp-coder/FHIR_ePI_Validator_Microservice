@@ -61,6 +61,7 @@
   .sev.warning { color: var(--warn-fg); }
   .sev.information { color: var(--accent); }
   .placeholder { color: var(--muted); }
+  .hint { color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
   footer { color: var(--muted); font-size: 13px; margin-top: 24px; }
   a { color: var(--accent); }
 </style>
@@ -74,23 +75,22 @@
   <div class="grid">
     <div class="panel">
       <h2>Input</h2>
-      <div class="row samples">
-        <label>Try:</label>
-        <button data-file="good.json"   data-type="1">Valid leaflet</button>
-        <button data-file="broken.json" data-type="1">Broken leaflet</button>
-        <button data-file="good.json"   data-type="3">Valid leaflet as Type 3</button>
-      </div>
       <div class="row">
-        <label for="epiType">epiType</label>
+        <label for="epiType">ePI type</label>
         <select id="epiType">
-          <option value="auto">auto</option>
-          <option value="1" selected>1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
+          <option value="1">Type 1</option>
+          <option value="2">Type 2</option>
+          <option value="3">Type 3</option>
+        </select>
+        <label for="variant">Example</label>
+        <select id="variant">
+          <option value="correct">Correct</option>
+          <option value="incorrect">Incorrect</option>
         </select>
         <button class="primary" id="validate">Validate</button>
       </div>
-      <textarea id="body" spellcheck="false" placeholder="Paste a FHIR ePI Bundle (JSON), or click a sample above."></textarea>
+      <p class="hint">Pick a type and correct or incorrect to load a sample, or paste your own bundle and click Validate.</p>
+      <textarea id="body" spellcheck="false" placeholder="A FHIR ePI Bundle (JSON)."></textarea>
     </div>
 
     <div class="panel">
@@ -108,6 +108,7 @@
 <script>
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  let seq = 0;  // guards against overlapping validations rendering out of order
 
   async function loadIdentity() {
     try {
@@ -118,31 +119,39 @@
     } catch (e) { $('identity').textContent = 'validator unreachable'; }
   }
 
-  async function loadSample(file, type) {
-    const r = await fetch('/samples/' + file);
-    $('body').value = await r.text();
-    $('epiType').value = type;
+  async function loadExample() {
+    const t = $('epiType').value, v = $('variant').value;
+    try {
+      const r = await fetch(`/samples/type${t}-${v}.json`);
+      $('body').value = await r.text();
+    } catch (e) {
+      $('result').innerHTML = `<p class="placeholder">Could not load sample: ${esc(e.message)}</p>`; return;
+    }
     validate();
   }
 
   function render(env) {
     const v = env.verdict || 'FAIL';
-    const issues = Array.isArray(env.issues) ? env.issues : [];
-    const errors = issues.filter(i => i.severity === 'error' || i.severity === 'fatal').length;
-    const warnings = issues.filter(i => i.severity === 'warning').length;
+    const all = Array.isArray(env.issues) ? env.issues : [];
+    const shown = all.filter(i => ['fatal', 'error', 'warning'].includes(i.severity));
+    const errors = all.filter(i => i.severity === 'error' || i.severity === 'fatal').length;
+    const warnings = all.filter(i => i.severity === 'warning').length;
+    const notes = all.length - shown.length;   // information-level: summarised, not listed
     let html = `<div class="verdict ${esc(v)}">${esc(v)}`
       + `<small>requested ${esc(env.requestedEpiType)} | detected ${esc(env.detectedEpiType)}`
-      + ` | effective ${esc(env.effectiveEpiType)} | ${errors} error(s), ${warnings} warning(s)</small></div>`;
-    if (!issues.length) {
-      html += '<p class="placeholder">No issues reported.</p>';
+      + ` | effective ${esc(env.effectiveEpiType)} | ${errors} error(s), ${warnings} warning(s)`
+      + `${notes ? ', ' + notes + ' note(s)' : ''}</small></div>`;
+    if (!shown.length) {
+      html += `<p class="placeholder">No errors or warnings.${notes ? ' ' + notes + ' informational note(s) not shown.' : ''}</p>`;
     } else {
-      for (const i of issues) {
+      for (const i of shown) {
         const loc = [i.fhirPath, i.line ? 'line ' + i.line : ''].filter(Boolean).join(' | ');
         html += `<div class="issue ${esc(i.severity)}">`
           + `<div class="meta"><span class="sev ${esc(i.severity)}">${esc(i.severity)}</span>`
           + ` | ${esc(i.source || '')}${loc ? ' | ' + esc(loc) : ''}</div>`
           + `<div class="msg">${esc(i.message || '')}</div></div>`;
       }
+      if (notes) html += `<p class="placeholder">+ ${notes} informational note(s) not shown.</p>`;
     }
     $('result').innerHTML = html;
   }
@@ -150,26 +159,29 @@
   async function validate() {
     const body = $('body').value.trim();
     if (!body) { $('result').innerHTML = '<p class="placeholder">Nothing to validate: paste a bundle or pick a sample.</p>'; return; }
+    const my = ++seq;
     $('result').innerHTML = '<p class="placeholder">Validating...</p>';
     try {
       const r = await fetch('/api/v1/epi/validate?epiType=' + encodeURIComponent($('epiType').value), {
         method: 'POST', headers: { 'Content-Type': 'application/fhir+json' }, body
       });
       const text = await r.text();
+      if (my !== seq) return;   // a newer validation has started; drop this stale result
       let env;
       try { env = JSON.parse(text); } catch (_) {
         $('result').innerHTML = `<p class="placeholder">HTTP ${r.status}: ${esc(text.slice(0, 400))}</p>`; return;
       }
       render(env);
     } catch (e) {
-      $('result').innerHTML = `<p class="placeholder">Request failed: ${esc(e.message)}</p>`;
+      if (my === seq) $('result').innerHTML = `<p class="placeholder">Request failed: ${esc(e.message)}</p>`;
     }
   }
 
-  document.querySelectorAll('.samples button').forEach(b =>
-    b.addEventListener('click', () => loadSample(b.dataset.file, b.dataset.type)));
+  $('epiType').addEventListener('change', loadExample);
+  $('variant').addEventListener('change', loadExample);
   $('validate').addEventListener('click', validate);
   loadIdentity();
+  loadExample();
 </script>
 </body>
 </html>

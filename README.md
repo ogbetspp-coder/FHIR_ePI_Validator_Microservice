@@ -209,10 +209,11 @@ to your `curl` calls; `validate_bundle.py` itself sends no auth header.
 
 ### Show it to colleagues
 
-The service root (`/`) serves a small self-contained web UI: paste a bundle or click a sample,
-pick the `epiType`, and see the verdict with each issue located. It is a single static file served
-by the app (no CDN, no external calls, same-origin with the API), so it works on a locked-down or
-offline instance. Open the Cloud Run URL in a browser.
+The service root (`/`) serves a small self-contained web UI. Pick a type (1, 2, or 3) and
+correct or incorrect to load a matching sample and validate it, or paste your own bundle and click
+Validate. It shows the verdict with each error and warning located by line. It is a single static
+file served by the app (no CDN, no external calls, same-origin with the API), so it works on a
+locked-down or offline instance. Open the Cloud Run URL in a browser.
 
 `examples/demo.sh` runs the same three cases from the terminal. Point it at your Cloud Run URL:
 
