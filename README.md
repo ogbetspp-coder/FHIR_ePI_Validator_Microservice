@@ -126,16 +126,22 @@ Everything runs **offline**: IG packages are vendored into the image and SHA-256
 
 ## Deploy to Google Cloud Run
 
-Prerequisites: the `gcloud` CLI, a GCP project, and an Artifact Registry Docker repo.
+Prerequisites: the `gcloud` CLI, Docker, and a GCP project (the image repo and APIs are created in
+step 0).
 
 ```bash
-# Set these once for your environment
-PROJECT=your-project;  REGION=europe-west1;  REPO=your-artifact-registry-repo
-IMAGE="$REGION-docker.pkg.dev/$PROJECT/$REPO/epi-validator:$(git rev-parse --short HEAD)"
+# Set these for your environment
+PROJECT=your-project;  REGION=europe-west1;  REPO=epi
+gcloud config set project "$PROJECT"
+
+# 0. One-time setup: enable the APIs, create the image repo, let Docker push to it
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com
+gcloud artifacts repositories create "$REPO" --repository-format=docker --location="$REGION"
+gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
 
 # 1. Build the image (service/Dockerfile, context = repo root) and push it
-make docker                                                   # -> epi-validator:local
-gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet # one-time
+IMAGE="$REGION-docker.pkg.dev/$PROJECT/$REPO/epi-validator:$(git rev-parse --short HEAD)"
+make docker
 docker tag epi-validator:local "$IMAGE"
 docker push "$IMAGE"
 
