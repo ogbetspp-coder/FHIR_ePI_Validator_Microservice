@@ -251,7 +251,10 @@ which is a good way to show the validator earns its keep even on the reference e
 `.github/workflows/deploy.yml` builds and deploys to Cloud Run on every push to `main` (and on
 manual dispatch), with no service-account keys, using Workload Identity Federation. It deploys a
 locked-down service (internal ingress, IAM only); for a public demo use `deploy/cloudrun.sh`.
-Both CI and deploy trigger on `main`, so they activate once this branch is merged.
+CI runs on every push and pull request, so it has a live result on this branch. The deploy
+workflow targets `main` plus manual dispatch and needs the three variables above, so it stays
+inert until you designate a `main` and set them. (The repository's default branch is currently
+the working branch, not `main`.)
 
 One-time setup, run once by a project owner (replace `REPO` with your `owner/repo`):
 

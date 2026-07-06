@@ -1,9 +1,12 @@
 name: CI
 
+# Runs on every push and pull request, and on manual dispatch. Not pinned to `main`: the
+# repository's default branch is currently the working branch, so a `main`-only trigger would
+# never fire. Build and tests should always produce a visible result.
 on:
   push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   java:
