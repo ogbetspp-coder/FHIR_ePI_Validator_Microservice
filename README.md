@@ -226,7 +226,9 @@ correct or incorrect to load a matching sample and validate it, or paste your ow
 Validate. It shows the verdict with each error and warning located by line. It is a single static
 file served by the app (no CDN, no external calls, same-origin with the API). Open the Cloud Run
 URL in a browser. The UI is a demo surface: on a locked-down deployment (`OPEN=0`) it sits behind
-IAM and sends no auth headers, so treat the JSON API as the production interface.
+IAM and sends no auth headers, so treat the JSON API as the production interface. To switch it off
+entirely in production, set `SPRING_WEB_RESOURCES_ADDMAPPINGS=false` (verified: `/` and `/samples/*`
+return 404, the API and health endpoints are unaffected).
 
 `examples/demo.sh` runs the same three cases from the terminal. Point it at your Cloud Run URL:
 

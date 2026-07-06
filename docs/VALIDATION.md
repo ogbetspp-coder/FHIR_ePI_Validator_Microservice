@@ -3,7 +3,8 @@
 Everything the service checks, the issue types it can emit, and how they map to a verdict. It runs
 the official HAPI FHIR / HL7 validation engine (`org.hl7.fhir.validation`, the engine behind
 validator.fhir.org) against FHIR R5 and the pinned ePI IG
-(`hl7.fhir.uv.emedicinal-product-info` 1.0.0), plus a few ePI-specific checks, fully offline.
+(`hl7.fhir.uv.emedicinal-product-info` 1.0.0), plus a few ePI-specific checks, fully offline at
+runtime (see the README for the build-time distinction).
 
 ## Verdict
 

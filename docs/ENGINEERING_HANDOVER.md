@@ -74,13 +74,25 @@ make smoke     # validate the sample bundles against a running instance
 - [ ] Agree the `PASS_WITH_WARNINGS` policy: block, review, or pass.
 - [ ] Agree where audit evidence is persisted (this service stores nothing).
 - [ ] Decide the demo UI posture: it is demo-only; the JSON API is the production interface.
+      Disable it with `SPRING_WEB_RESOURCES_ADDMAPPINGS=false` (UI and samples return 404, API
+      unaffected).
 - [ ] Optional: structured JSON logging for Cloud Logging severity parsing (adds
       `spring-cloud-gcp-starter-logging`; plain text works but severities show as default).
+
+## Regression coverage
+
+The expected outcomes are asserted by the integration suite (`ValidateApiIT` and the checks
+tests), on stable wrapper fields only (verdict, types, `EPI-*` ruleIds, source, severity), never
+on exact engine text: good Type 1 passes, the broken bundle fails with `EPI-DOC-003` plus profile
+errors, Type 1 submitted as `epiType=3` fails with `EPI-TYPE-001/002`, and a ClinicalUseDefinition
+sub-profile violation fails via `EPI-CUD-PROFILE`. CI also cross-checks verdict agreement with the
+standalone official validator.
 
 ## Acceptance checklist (run before sign-off)
 
 - [ ] `tools/vendor-packages.sh --verify` green.
 - [ ] `mvn -f service/pom.xml verify` green (53 unit + 22 integration tests).
+- [ ] `yamllint -d relaxed .github/workflows/*.yml` has no errors (actionlint too, if available).
 - [ ] `docker compose up -d --wait` then `make smoke` green.
 - [ ] `./deploy/cloudrun.sh` ends with the three expected verdicts
       (PASS_WITH_WARNINGS / FAIL / FAIL).
