@@ -7,3 +7,7 @@ steps:
   - name: gcr.io/cloud-builders/docker
     args: ["build", "-t", "${_IMAGE}", "-f", "service/Dockerfile", "."]
 images: ["${_IMAGE}"]
+options:
+  # Newer projects run builds as the Compute Engine default service account, which requires
+  # the build to name a log destination. Send logs to Cloud Logging (no GCS log bucket needed).
+  logging: CLOUD_LOGGING_ONLY

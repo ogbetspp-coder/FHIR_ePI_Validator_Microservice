@@ -52,6 +52,15 @@ if [ "${USE_DOCKER}" = "1" ]; then
   docker push "${IMAGE}"
 else
   echo "==> [2/4] Building and pushing with Cloud Build (no local Docker)"
+  # Cloud Build runs as the Compute Engine default service account, which on a new project
+  # starts with no roles. Grant it what a build needs: read the uploaded source, push the
+  # image to Artifact Registry, and write build logs. Idempotent, so re-runs are no-ops.
+  PROJECT_NUMBER="$(gcloud projects describe "${PROJECT}" --format='value(projectNumber)')"
+  CB_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+  for role in roles/cloudbuild.builds.builder roles/artifactregistry.writer roles/logging.logWriter; do
+    gcloud projects add-iam-policy-binding "${PROJECT}" \
+      --member="serviceAccount:${CB_SA}" --role="${role}" --condition=None >/dev/null
+  done
   gcloud builds submit . --config deploy/cloudbuild.yaml --substitutions "_IMAGE=${IMAGE}"
 fi
 

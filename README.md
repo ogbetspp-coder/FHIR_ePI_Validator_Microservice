@@ -136,11 +136,12 @@ gcloud config set project YOUR_PROJECT_ID
 ./deploy/cloudrun.sh
 ```
 
-It enables the APIs, creates the image repo if needed, builds and pushes with Cloud Build,
-deploys to Cloud Run, waits for warm-up, then prints the verdicts for the good and broken
-bundles. Override defaults by exporting env vars first: `REGION` (default `europe-west1`),
-`REPO`, `SERVICE`, `OPEN=0` (IAM-only instead of a public demo), `USE_DOCKER=1` (build locally
-instead of Cloud Build). Delete the demo when done:
+It enables the APIs, creates the image repo if needed, grants the Cloud Build service account
+its roles, builds and pushes with Cloud Build, deploys to Cloud Run, waits for warm-up, then
+prints the verdicts for the good and broken bundles. The first run needs a project owner or
+admin (it edits IAM once); later runs and other users do not. Override defaults by exporting env
+vars first: `REGION` (default `europe-west1`), `REPO`, `SERVICE`, `OPEN=0` (IAM-only instead of a
+public demo), `USE_DOCKER=1` (build locally instead of Cloud Build). Delete the demo when done:
 `gcloud run services delete epi-validator --region=europe-west1`.
 
 <details>
