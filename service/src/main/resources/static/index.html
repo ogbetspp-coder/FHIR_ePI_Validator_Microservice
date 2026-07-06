@@ -44,6 +44,8 @@
   button { cursor: pointer; }
   button:hover { border-color: var(--accent); }
   button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .filebtn { cursor: pointer; font-size: 13px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--panel); color: var(--ink); }
+  .filebtn:hover { border-color: var(--accent); }
   .samples button { font-size: 13px; }
   .verdict { border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; font-weight: 600; border: 1px solid var(--line); }
   .verdict small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
@@ -69,7 +71,6 @@
 <body>
 <div class="wrap">
   <h1>FHIR ePI Validator</h1>
-  <p class="sub">Checks a FHIR ePI Bundle against FHIR R5 and the pinned HL7 ePI Implementation Guide, using the official HAPI validator.</p>
   <span class="chip" id="identity">connecting...</span>
 
   <div class="grid">
@@ -88,9 +89,10 @@
           <option value="incorrect">Incorrect</option>
         </select>
         <button class="primary" id="validate">Validate</button>
+        <label for="file" class="filebtn">Upload JSON</label>
+        <input id="file" type="file" accept=".json,application/json" hidden>
       </div>
-      <p class="hint">Pick a type and correct or incorrect to load a sample, or paste your own bundle and click Validate.</p>
-      <textarea id="body" spellcheck="false" placeholder="A FHIR ePI Bundle (JSON)."></textarea>
+      <textarea id="body" spellcheck="false" placeholder="Paste a FHIR ePI Bundle (JSON) here, or use Upload JSON, then click Validate."></textarea>
     </div>
 
     <div class="panel">
@@ -98,11 +100,6 @@
       <div id="result"><p class="placeholder">Load a sample or paste a bundle, then Validate.</p></div>
     </div>
   </div>
-
-  <footer>
-    Same engine as validator.fhir.org, running offline against a SHA-256-pinned IG package.
-    Machine-readable identity at <a href="/api/v1/epi/info">/api/v1/epi/info</a>.
-  </footer>
 </div>
 
 <script>
@@ -177,9 +174,18 @@
     }
   }
 
+  async function loadFile(ev) {
+    const f = ev.target.files[0];
+    if (!f) return;
+    $('body').value = await f.text();
+    ev.target.value = '';   // allow re-selecting the same file
+    validate();
+  }
+
   $('epiType').addEventListener('change', loadExample);
   $('variant').addEventListener('change', loadExample);
   $('validate').addEventListener('click', validate);
+  $('file').addEventListener('change', loadFile);
   loadIdentity();
   loadExample();
 </script>
