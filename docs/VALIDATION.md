@@ -90,6 +90,40 @@ The definitive message set is the official validator's; this service reports wha
 produces, unchanged. CI cross-checks that the verdict agrees with a standalone run of
 `org.hl7.fhir.validation`.
 
+### Code catalogue
+
+The six `EPI-*` rules above are the complete, stable, project-owned set. The engine ships a much
+larger, version-pinned catalogue: **1,524 message codes** in `org.hl7.fhir` 6.9.4.1 (the engine
+inside HAPI 8.10.0, reported as `validatorInfo.hapiVersion`). Most target resource types an ePI
+never contains (Questionnaire, Measure, StructureMap, ConceptMap). The families that apply to an
+ePI document bundle, with a real example code from each:
+
+| Family | Codes (approx) | Covers | Example code |
+|---|---|---|---|
+| Data types | 235 | element types, values, and formats | `TYPE_SPECIFIC_CHECKS_DT_...` |
+| Profile / structure | 143 | profile conformance, required and fixed elements | `VALIDATION_VAL_PROFILE_...` |
+| Bundle | 128 | document type, entries, links, integrity | `Bundle_BUNDLE_Entry_NotFound` |
+| Terminology (ValueSet + CodeSystem) | 230 | code bindings, expansions, unknown systems | `Terminology_TX_System_Unknown` |
+| FHIRPath / invariants | 77 | constraint expressions (for example `cmp-1`) | `FHIRPATH_...` |
+| Slicing | 64 | profile slices | `SLICING_CANNOT_BE_EVALUATED` |
+| Extensions | 49 | extension context and cardinality | `Extension_EXT_Count_Mismatch` |
+| Narrative (XHTML) | 47 | narrative well-formedness, hyperlinks | `XHTML_XHTML_Attribute_Illegal` |
+| References | 43 | reference targets and types | `Reference_REF_CantMatchType` |
+
+Counts are approximate (a key can belong to more than one family) and specific to the pinned engine
+version. These ids are diagnostics, not contract: only the `EPI-*` ids are stable across versions.
+
+To dump the complete, version-matched list, read the message catalogue from the engine jar on the
+classpath (the token before each `=` is the code):
+
+```bash
+unzip -p "$(find ~/.m2 -name 'org.hl7.fhir.utilities-*.jar' | grep -v sources | head -1)" \
+  Messages.properties | grep -oE '^[A-Za-z0-9_]+ *=' | sed 's/ *=//' | sort
+```
+
+The authoritative source is the official validator (validator.fhir.org / build.fhir.org), which
+this service runs unchanged.
+
 ## Unknown code systems (offline policy)
 
 Real ePIs reference code systems with no freely distributable representation (EDQM Standard Terms,
