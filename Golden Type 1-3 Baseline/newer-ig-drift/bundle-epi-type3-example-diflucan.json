@@ -1,0 +1,657 @@
+{
+  "resourceType" : "Bundle",
+  "id" : "bundle-epi-type3-example-diflucan",
+  "meta" : {
+    "versionId" : "1.0",
+    "lastUpdated" : "2026-06-17T10:00:00Z",
+    "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/bundle-epi-type3"]
+  },
+  "identifier" : {
+    "system" : "http://ema.europa.eu/identifier",
+    "value" : "DIFLUCAN-BUNDLE-TYPE3"
+  },
+  "type" : "document",
+  "timestamp" : "2026-06-17T10:00:00Z",
+  "entry" : [{
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Composition/composition-diflucan",
+    "resource" : {
+      "resourceType" : "Composition",
+      "id" : "composition-diflucan",
+      "meta" : {
+        "versionId" : "1",
+        "lastUpdated" : "2026-06-17T10:00:00Z",
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/composition-epi-type1"]
+      },
+      "language" : "en",
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\"><a name=\"Composition_composition-diflucan\"> </a><p>Diflucan Summary of Product Characteristics</p></div>"
+      },
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "composition-diflucan"
+      }],
+      "version" : "1.0",
+      "status" : "final",
+      "type" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000155532",
+          "display" : "Summary of Product Characteristics"
+        }]
+      },
+      "subject" : [{
+        "reference" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-diflucan"
+      }],
+      "date" : "2026-06-17",
+      "author" : [{
+        "reference" : "Organization/org-diflucan"
+      }],
+      "title" : "Diflucan 150 mg capsule - Summary of Product Characteristics",
+      "section" : [{
+        "id" : "diflucan-root",
+        "title" : "SUMMARY OF PRODUCT CHARACTERISTICS",
+        "code" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "200000029791",
+            "display" : "SUMMARY OF PRODUCT CHARACTERISTICS"
+          }]
+        },
+        "text" : {
+          "status" : "generated",
+          "div" : "<div xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">Summary of Product Characteristics for Diflucan</div>"
+        },
+        "section" : [{
+          "id" : "diflucan-4-1",
+          "title" : "4.1 Therapeutic indications",
+          "code" : {
+            "coding" : [{
+              "system" : "https://spor.ema.europa.eu/rmswi",
+              "code" : "200000029799",
+              "display" : "4.1 Therapeutic indications"
+            }]
+          },
+          "text" : {
+            "status" : "generated",
+            "div" : "<div xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\"><p>Treatment of mucosal and invasive candidiasis.</p></div>"
+          },
+          "entry" : [{
+            "reference" : "ClinicalUseDefinition/cud-diflucan-mucosal"
+          },
+          {
+            "reference" : "ClinicalUseDefinition/cud-diflucan-invasive"
+          }]
+        },
+        {
+          "id" : "diflucan-4-2",
+          "title" : "4.2 Posology and method of administration",
+          "code" : {
+            "coding" : [{
+              "system" : "https://spor.ema.europa.eu/rmswi",
+              "code" : "200000029800",
+              "display" : "4.2 Posology and method of administration"
+            }]
+          },
+          "text" : {
+            "status" : "generated",
+            "div" : "<div xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\"><p>Dose depends on the indication and the patient population (see structured dosing). Renal impairment requires dose adjustment for multiple-dose therapy.</p></div>"
+          },
+          "entry" : [{
+            "reference" : "MedicationKnowledge/mk-diflucan"
+          },
+          {
+            "reference" : "ClinicalUseDefinition/cud-diflucan-renal"
+          }]
+        }]
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Organization/org-diflucan",
+    "resource" : {
+      "resourceType" : "Organization",
+      "id" : "org-diflucan",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Organization-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"Organization_org-diflucan\"> </a><p class=\"res-header-id\"><b>Generated Narrative: Organization org-diflucan</b></p><a name=\"org-diflucan\"> </a><a name=\"hcorg-diflucan\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Organization-uv-epi.html\">Organization (ePI)</a></p></div><p><b>identifier</b>: <code>https://spor.ema.europa.eu/omswi</code>/LOC-100000999</p><p><b>active</b>: true</p><p><b>name</b>: Example Pharma Ltd.</p></div>"
+      },
+      "identifier" : [{
+        "system" : "https://spor.ema.europa.eu/omswi",
+        "value" : "LOC-100000999"
+      }],
+      "active" : true,
+      "name" : "Example Pharma Ltd."
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-diflucan",
+    "resource" : {
+      "resourceType" : "MedicinalProductDefinition",
+      "id" : "mpd-diflucan",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/MedicinalProductDefinition-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"MedicinalProductDefinition_mpd-diflucan\"> </a><p class=\"res-header-id\"><b>Generated Narrative: MedicinalProductDefinition mpd-diflucan</b></p><a name=\"mpd-diflucan\"> </a><a name=\"hcmpd-diflucan\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-MedicinalProductDefinition-uv-epi.html\">MedicinalProductDefinition (ePI)</a></p></div><p><b>identifier</b>: <code>http://ema.europa.eu/identifier</code>/DIFLUCAN-150MG</p><p><b>status</b>: <span title=\"Codes:{http://hl7.org/fhir/publication-status active}\">Active</span></p><h3>Names</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>ProductName</b></td></tr><tr><td style=\"display: none\">*</td><td>Diflucan 150 mg capsule</td></tr></table></div>"
+      },
+      "identifier" : [{
+        "system" : "http://ema.europa.eu/identifier",
+        "value" : "DIFLUCAN-150MG"
+      }],
+      "status" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/publication-status",
+          "code" : "active",
+          "display" : "Active"
+        }]
+      },
+      "name" : [{
+        "productName" : "Diflucan 150 mg capsule"
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicationKnowledge/mk-diflucan",
+    "resource" : {
+      "resourceType" : "MedicationKnowledge",
+      "id" : "mk-diflucan",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/MedicationKnowledge-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"MedicationKnowledge_mk-diflucan\"> </a><p class=\"res-header-id\"><b>Generated Narrative: MedicationKnowledge mk-diflucan</b></p><a name=\"mk-diflucan\"> </a><a name=\"hcmk-diflucan\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-MedicationKnowledge-uv-epi.html\">MedicationKnowledge (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/mk-diflucan</p><p><b>status</b>: Active</p><blockquote><p><b>indicationGuideline</b></p><h3>Indications</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Reference</b></td></tr><tr><td style=\"display: none\">*</td><td><a href=\"ClinicalUseDefinition-cud-diflucan-mucosal.html\">ClinicalUseDefinition: identifier = http://example.org/identifier#cud-diflucan-mucosal; type = indication; category = Indication; status = Active</a></td></tr></table><blockquote><p><b>dosingGuideline</b></p><blockquote><p><b>dosage</b></p><p><b>type</b>: <span title=\"Codes:\">Loading dose (Day 1)</span></p><blockquote><p><b>dosage</b></p><p><b>sequence</b>: 1</p><p><b>text</b>: 200 to 400 mg on Day 1</p><h3>DoseAndRates</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Dose[x]</b></td></tr><tr><td style=\"display: none\">*</td><td>200-400 mg</td></tr></table></blockquote></blockquote><blockquote><p><b>dosage</b></p><p><b>type</b>: <span title=\"Codes:\">Maintenance</span></p><blockquote><p><b>dosage</b></p><p><b>sequence</b>: 2</p><p><b>text</b>: 100 to 200 mg once daily for 7 to 21 days</p><p><b>timing</b>: Once per 1 day</p><h3>DoseAndRates</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Dose[x]</b></td></tr><tr><td style=\"display: none\">*</td><td>100-200 mg</td></tr></table></blockquote></blockquote><h3>PatientCharacteristics</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Type</b></td><td><b>Value[x]</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type age}\">Age</span></td><td>18-? years</td></tr></table></blockquote><blockquote><p><b>dosingGuideline</b></p><blockquote><p><b>dosage</b></p><p><b>type</b>: <span title=\"Codes:\">Initial dose</span></p><blockquote><p><b>dosage</b></p><p><b>sequence</b>: 1</p><p><b>text</b>: 6 mg/kg on the first day</p><h3>DoseAndRates</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Dose[x]</b></td></tr><tr><td style=\"display: none\">*</td><td>6 mg/kg<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM  codemg/kg = 'mg/kg')</span></td></tr></table></blockquote></blockquote><blockquote><p><b>dosage</b></p><p><b>type</b>: <span title=\"Codes:\">Subsequent dose</span></p><blockquote><p><b>dosage</b></p><p><b>sequence</b>: 2</p><p><b>text</b>: 3 mg/kg once daily</p><p><b>timing</b>: Once per 1 day</p><h3>DoseAndRates</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Dose[x]</b></td></tr><tr><td style=\"display: none\">*</td><td>3 mg/kg<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM  codemg/kg = 'mg/kg')</span></td></tr></table></blockquote></blockquote><h3>PatientCharacteristics</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Type</b></td><td><b>Value[x]</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type age}\">Age</span></td><td>28-11 days</td></tr></table></blockquote><blockquote><p><b>dosingGuideline</b></p><blockquote><p><b>dosage</b></p><p><b>type</b>: <span title=\"Codes:\">Neonatal dose</span></p><blockquote><p><b>dosage</b></p><p><b>sequence</b>: 1</p><p><b>text</b>: 3 mg/kg every 72 hours (max 12 mg/kg every 72 hours)</p><p><b>timing</b>: Once per 72 hours</p><h3>DoseAndRates</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Dose[x]</b></td></tr><tr><td style=\"display: none\">*</td><td>3 mg/kg<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM  codemg/kg = 'mg/kg')</span></td></tr></table><p><b>maxDosePerPeriod</b>: 12 mg/kg<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM  codemg/kg = 'mg/kg')</span>/72 hours<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM  codeh = 'h')</span></p></blockquote></blockquote><h3>PatientCharacteristics</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Type</b></td><td><b>Value[x]</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type age}\">Age</span></td><td>0-14 days</td></tr></table></blockquote></blockquote><blockquote><p><b>indicationGuideline</b></p><h3>Indications</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Reference</b></td></tr><tr><td style=\"display: none\">*</td><td><a href=\"ClinicalUseDefinition-cud-diflucan-invasive.html\">ClinicalUseDefinition: identifier = http://example.org/identifier#cud-diflucan-invasive; type = indication; category = Indication; status = Active</a></td></tr></table><blockquote><p><b>dosingGuideline</b></p><blockquote><p><b>dosage</b></p><p><b>type</b>: <span title=\"Codes:\">Loading dose (Day 1)</span></p><blockquote><p><b>dosage</b></p><p><b>sequence</b>: 1</p><p><b>text</b>: 800 mg on Day 1</p><h3>DoseAndRates</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Dose[x]</b></td></tr><tr><td style=\"display: none\">*</td><td>800 mg<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM  codemg = 'mg')</span></td></tr></table></blockquote></blockquote><blockquote><p><b>dosage</b></p><p><b>type</b>: <span title=\"Codes:\">Maintenance</span></p><blockquote><p><b>dosage</b></p><p><b>sequence</b>: 2</p><p><b>text</b>: 400 mg once daily</p><p><b>timing</b>: Once per 1 day</p><h3>DoseAndRates</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Dose[x]</b></td></tr><tr><td style=\"display: none\">*</td><td>400 mg<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM  codemg = 'mg')</span></td></tr></table></blockquote></blockquote></blockquote></blockquote></div>"
+      },
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "mk-diflucan"
+      }],
+      "status" : "active",
+      "indicationGuideline" : [{
+        "indication" : [{
+          "reference" : {
+            "reference" : "ClinicalUseDefinition/cud-diflucan-mucosal"
+          }
+        }],
+        "dosingGuideline" : [{
+          "dosage" : [{
+            "type" : {
+              "text" : "Loading dose (Day 1)"
+            },
+            "dosage" : [{
+              "sequence" : 1,
+              "text" : "200 to 400 mg on Day 1",
+              "doseAndRate" : [{
+                "doseRange" : {
+                  "low" : {
+                    "value" : 200,
+                    "unit" : "mg",
+                    "system" : "http://unitsofmeasure.org",
+                    "code" : "mg"
+                  },
+                  "high" : {
+                    "value" : 400,
+                    "unit" : "mg",
+                    "system" : "http://unitsofmeasure.org",
+                    "code" : "mg"
+                  }
+                }
+              }]
+            }]
+          },
+          {
+            "type" : {
+              "text" : "Maintenance"
+            },
+            "dosage" : [{
+              "sequence" : 2,
+              "text" : "100 to 200 mg once daily for 7 to 21 days",
+              "timing" : {
+                "repeat" : {
+                  "frequency" : 1,
+                  "period" : 1,
+                  "periodUnit" : "d"
+                }
+              },
+              "doseAndRate" : [{
+                "doseRange" : {
+                  "low" : {
+                    "value" : 100,
+                    "unit" : "mg",
+                    "system" : "http://unitsofmeasure.org",
+                    "code" : "mg"
+                  },
+                  "high" : {
+                    "value" : 200,
+                    "unit" : "mg",
+                    "system" : "http://unitsofmeasure.org",
+                    "code" : "mg"
+                  }
+                }
+              }]
+            }]
+          }],
+          "patientCharacteristic" : [{
+            "type" : {
+              "coding" : [{
+                "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type",
+                "code" : "age",
+                "display" : "Age"
+              }]
+            },
+            "valueRange" : {
+              "low" : {
+                "value" : 18,
+                "unit" : "years",
+                "system" : "http://unitsofmeasure.org",
+                "code" : "a"
+              }
+            }
+          }]
+        },
+        {
+          "dosage" : [{
+            "type" : {
+              "text" : "Initial dose"
+            },
+            "dosage" : [{
+              "sequence" : 1,
+              "text" : "6 mg/kg on the first day",
+              "doseAndRate" : [{
+                "doseQuantity" : {
+                  "value" : 6,
+                  "unit" : "mg/kg",
+                  "system" : "http://unitsofmeasure.org",
+                  "code" : "mg/kg"
+                }
+              }]
+            }]
+          },
+          {
+            "type" : {
+              "text" : "Subsequent dose"
+            },
+            "dosage" : [{
+              "sequence" : 2,
+              "text" : "3 mg/kg once daily",
+              "timing" : {
+                "repeat" : {
+                  "frequency" : 1,
+                  "period" : 1,
+                  "periodUnit" : "d"
+                }
+              },
+              "doseAndRate" : [{
+                "doseQuantity" : {
+                  "value" : 3,
+                  "unit" : "mg/kg",
+                  "system" : "http://unitsofmeasure.org",
+                  "code" : "mg/kg"
+                }
+              }]
+            }]
+          }],
+          "patientCharacteristic" : [{
+            "type" : {
+              "coding" : [{
+                "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type",
+                "code" : "age",
+                "display" : "Age"
+              }]
+            },
+            "valueRange" : {
+              "low" : {
+                "value" : 28,
+                "unit" : "days",
+                "system" : "http://unitsofmeasure.org",
+                "code" : "d"
+              },
+              "high" : {
+                "value" : 11,
+                "unit" : "years",
+                "system" : "http://unitsofmeasure.org",
+                "code" : "a"
+              }
+            }
+          }]
+        },
+        {
+          "dosage" : [{
+            "type" : {
+              "text" : "Neonatal dose"
+            },
+            "dosage" : [{
+              "sequence" : 1,
+              "text" : "3 mg/kg every 72 hours (max 12 mg/kg every 72 hours)",
+              "timing" : {
+                "repeat" : {
+                  "frequency" : 1,
+                  "period" : 72,
+                  "periodUnit" : "h"
+                }
+              },
+              "doseAndRate" : [{
+                "doseQuantity" : {
+                  "value" : 3,
+                  "unit" : "mg/kg",
+                  "system" : "http://unitsofmeasure.org",
+                  "code" : "mg/kg"
+                }
+              }],
+              "maxDosePerPeriod" : [{
+                "numerator" : {
+                  "value" : 12,
+                  "unit" : "mg/kg",
+                  "system" : "http://unitsofmeasure.org",
+                  "code" : "mg/kg"
+                },
+                "denominator" : {
+                  "value" : 72,
+                  "unit" : "hours",
+                  "system" : "http://unitsofmeasure.org",
+                  "code" : "h"
+                }
+              }]
+            }]
+          }],
+          "patientCharacteristic" : [{
+            "type" : {
+              "coding" : [{
+                "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type",
+                "code" : "age",
+                "display" : "Age"
+              }]
+            },
+            "valueRange" : {
+              "low" : {
+                "value" : 0,
+                "unit" : "days",
+                "system" : "http://unitsofmeasure.org",
+                "code" : "d"
+              },
+              "high" : {
+                "value" : 14,
+                "unit" : "days",
+                "system" : "http://unitsofmeasure.org",
+                "code" : "d"
+              }
+            }
+          }]
+        }]
+      },
+      {
+        "indication" : [{
+          "reference" : {
+            "reference" : "ClinicalUseDefinition/cud-diflucan-invasive"
+          }
+        }],
+        "dosingGuideline" : [{
+          "dosage" : [{
+            "type" : {
+              "text" : "Loading dose (Day 1)"
+            },
+            "dosage" : [{
+              "sequence" : 1,
+              "text" : "800 mg on Day 1",
+              "doseAndRate" : [{
+                "doseQuantity" : {
+                  "value" : 800,
+                  "unit" : "mg",
+                  "system" : "http://unitsofmeasure.org",
+                  "code" : "mg"
+                }
+              }]
+            }]
+          },
+          {
+            "type" : {
+              "text" : "Maintenance"
+            },
+            "dosage" : [{
+              "sequence" : 2,
+              "text" : "400 mg once daily",
+              "timing" : {
+                "repeat" : {
+                  "frequency" : 1,
+                  "period" : 1,
+                  "periodUnit" : "d"
+                }
+              },
+              "doseAndRate" : [{
+                "doseQuantity" : {
+                  "value" : 400,
+                  "unit" : "mg",
+                  "system" : "http://unitsofmeasure.org",
+                  "code" : "mg"
+                }
+              }]
+            }]
+          }]
+        }]
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/ClinicalUseDefinition/cud-diflucan-mucosal",
+    "resource" : {
+      "resourceType" : "ClinicalUseDefinition",
+      "id" : "cud-diflucan-mucosal",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/ClinicalUseDefinition-indication-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"ClinicalUseDefinition_cud-diflucan-mucosal\"> </a><p class=\"res-header-id\"><b>Generated Narrative: ClinicalUseDefinition cud-diflucan-mucosal</b></p><a name=\"cud-diflucan-mucosal\"> </a><a name=\"hccud-diflucan-mucosal\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-ClinicalUseDefinition-indication-uv-epi.html\">ClinicalUseDefinition Indication (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/cud-diflucan-mucosal</p><p><b>type</b>: Indication</p><p><b>category</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig indication}\">Indication</span></p><p><b>subject</b>: <a href=\"Bundle-bundle-epi-type3-example-diflucan.html#http-//hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-diflucan\">MedicinalProductDefinition: identifier = http://ema.europa.eu/identifier#DIFLUCAN-150MG; status = Active</a></p><p><b>status</b>: <span title=\"Codes:{http://hl7.org/fhir/publication-status active}\">Active</span></p><blockquote><p><b>indication</b></p><h3>DiseaseSymptomProcedures</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Concept</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{http://snomed.info/sct 79740000}\">Candidiasis of mouth</span></td></tr></table></blockquote></div>"
+      },
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "cud-diflucan-mucosal"
+      }],
+      "type" : "indication",
+      "category" : [{
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+          "code" : "indication",
+          "display" : "Indication"
+        }]
+      }],
+      "subject" : [{
+        "reference" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-diflucan"
+      }],
+      "status" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/publication-status",
+          "code" : "active",
+          "display" : "Active"
+        }]
+      },
+      "indication" : {
+        "diseaseSymptomProcedure" : {
+          "concept" : {
+            "coding" : [{
+              "system" : "http://snomed.info/sct",
+              "code" : "79740000",
+              "display" : "Candidiasis of mouth"
+            }]
+          }
+        }
+      }
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/ClinicalUseDefinition/cud-diflucan-invasive",
+    "resource" : {
+      "resourceType" : "ClinicalUseDefinition",
+      "id" : "cud-diflucan-invasive",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/ClinicalUseDefinition-indication-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"ClinicalUseDefinition_cud-diflucan-invasive\"> </a><p class=\"res-header-id\"><b>Generated Narrative: ClinicalUseDefinition cud-diflucan-invasive</b></p><a name=\"cud-diflucan-invasive\"> </a><a name=\"hccud-diflucan-invasive\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-ClinicalUseDefinition-indication-uv-epi.html\">ClinicalUseDefinition Indication (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/cud-diflucan-invasive</p><p><b>type</b>: Indication</p><p><b>category</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig indication}\">Indication</span></p><p><b>subject</b>: <a href=\"Bundle-bundle-epi-type3-example-diflucan.html#http-//hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-diflucan\">MedicinalProductDefinition: identifier = http://ema.europa.eu/identifier#DIFLUCAN-150MG; status = Active</a></p><p><b>status</b>: <span title=\"Codes:{http://hl7.org/fhir/publication-status active}\">Active</span></p><blockquote><p><b>indication</b></p><h3>DiseaseSymptomProcedures</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Concept</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{http://snomed.info/sct 70572005}\">Invasive candidiasis</span></td></tr></table></blockquote><p><b>population</b>: <a href=\"Group-group-diflucan-adult.html\">Adults</a></p></div>"
+      },
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "cud-diflucan-invasive"
+      }],
+      "type" : "indication",
+      "category" : [{
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+          "code" : "indication",
+          "display" : "Indication"
+        }]
+      }],
+      "subject" : [{
+        "reference" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-diflucan"
+      }],
+      "status" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/publication-status",
+          "code" : "active",
+          "display" : "Active"
+        }]
+      },
+      "indication" : {
+        "diseaseSymptomProcedure" : {
+          "concept" : {
+            "coding" : [{
+              "system" : "http://snomed.info/sct",
+              "code" : "70572005",
+              "display" : "Invasive candidiasis"
+            }]
+          }
+        }
+      },
+      "population" : [{
+        "reference" : "Group/group-diflucan-adult",
+        "display" : "Adults"
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/ClinicalUseDefinition/cud-diflucan-renal",
+    "resource" : {
+      "resourceType" : "ClinicalUseDefinition",
+      "id" : "cud-diflucan-renal",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/ClinicalUseDefinition-warning-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"ClinicalUseDefinition_cud-diflucan-renal\"> </a><p class=\"res-header-id\"><b>Generated Narrative: ClinicalUseDefinition cud-diflucan-renal</b></p><a name=\"cud-diflucan-renal\"> </a><a name=\"hccud-diflucan-renal\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-ClinicalUseDefinition-warning-uv-epi.html\">ClinicalUseDefinition Warning (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/cud-diflucan-renal</p><p><b>type</b>: Warning</p><p><b>category</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig warning}\">Warning</span></p><p><b>subject</b>: <a href=\"Bundle-bundle-epi-type3-example-diflucan.html#http-//hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-diflucan\">MedicinalProductDefinition: identifier = http://ema.europa.eu/identifier#DIFLUCAN-150MG; status = Active</a></p><p><b>status</b>: <span title=\"Codes:{http://hl7.org/fhir/publication-status active}\">Active</span></p><p><b>population</b>: <a href=\"Group-group-diflucan-renal.html\">Renal impairment (CrCl ≤ 50 mL/min)</a></p><h3>Warnings</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Code</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{http://snomed.info/sct 723188008}\">For multiple-dose therapy, after a normal loading dose, give 50% of the recommended daily dose when CrCl ≤ 50 mL/min (no haemodialysis); give 100% of the recommended dose after each haemodialysis session. Single-dose therapy needs no adjustment. This rule applies to every multiple-dose indication.</span></td></tr></table></div>"
+      },
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "cud-diflucan-renal"
+      }],
+      "type" : "warning",
+      "category" : [{
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+          "code" : "warning",
+          "display" : "Warning"
+        }]
+      }],
+      "subject" : [{
+        "reference" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-diflucan"
+      }],
+      "status" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/publication-status",
+          "code" : "active",
+          "display" : "Active"
+        }]
+      },
+      "population" : [{
+        "reference" : "Group/group-diflucan-renal",
+        "display" : "Renal impairment (CrCl ≤ 50 mL/min)"
+      }],
+      "warning" : {
+        "code" : {
+          "coding" : [{
+            "system" : "http://snomed.info/sct",
+            "code" : "723188008",
+            "display" : "Renal insufficiency"
+          }],
+          "text" : "For multiple-dose therapy, after a normal loading dose, give 50% of the recommended daily dose when CrCl ≤ 50 mL/min (no haemodialysis); give 100% of the recommended dose after each haemodialysis session. Single-dose therapy needs no adjustment. This rule applies to every multiple-dose indication."
+        }
+      }
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Group/group-diflucan-adult",
+    "resource" : {
+      "resourceType" : "Group",
+      "id" : "group-diflucan-adult",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Group-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"Group_group-diflucan-adult\"> </a><p class=\"res-header-id\"><b>Generated Narrative: Group group-diflucan-adult</b></p><a name=\"group-diflucan-adult\"> </a><a name=\"hcgroup-diflucan-adult\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Group-uv-epi.html\">Group (ePI)</a></p></div><p><b>type</b>: Person</p><p><b>membership</b>: Definitional</p><p><b>name</b>: Adults</p><h3>Characteristics</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Code</b></td><td><b>Value[x]</b></td><td><b>Exclude</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type age}\">Age</span></td><td>18-? years</td><td>false</td></tr></table></div>"
+      },
+      "type" : "person",
+      "membership" : "definitional",
+      "name" : "Adults",
+      "characteristic" : [{
+        "code" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type",
+            "code" : "age",
+            "display" : "Age"
+          }]
+        },
+        "valueRange" : {
+          "low" : {
+            "value" : 18,
+            "unit" : "years",
+            "system" : "http://unitsofmeasure.org",
+            "code" : "a"
+          }
+        },
+        "exclude" : false
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Group/group-diflucan-renal",
+    "resource" : {
+      "resourceType" : "Group",
+      "id" : "group-diflucan-renal",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Group-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"Group_group-diflucan-renal\"> </a><p class=\"res-header-id\"><b>Generated Narrative: Group group-diflucan-renal</b></p><a name=\"group-diflucan-renal\"> </a><a name=\"hcgroup-diflucan-renal\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Group-uv-epi.html\">Group (ePI)</a></p></div><p><b>type</b>: Person</p><p><b>membership</b>: Definitional</p><p><b>name</b>: Renal impairment (CrCl ≤ 50 mL/min)</p><h3>Characteristics</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Code</b></td><td><b>Value[x]</b></td><td><b>Exclude</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type renal-function}\">Renal function</span></td><td>?-50</td><td>false</td></tr></table></div>"
+      },
+      "type" : "person",
+      "membership" : "definitional",
+      "name" : "Renal impairment (CrCl ≤ 50 mL/min)",
+      "characteristic" : [{
+        "code" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-group-characteristic-type",
+            "code" : "renal-function",
+            "display" : "Renal function"
+          }]
+        },
+        "valueRange" : {
+          "high" : {
+            "value" : 50,
+            "unit" : "mL/min",
+            "system" : "http://unitsofmeasure.org",
+            "code" : "mL/min"
+          }
+        },
+        "exclude" : false
+      }]
+    }
+  }]
+}

@@ -1,0 +1,740 @@
+{
+  "resourceType" : "Bundle",
+  "id" : "bundle-epi-type2-example-paracetamol",
+  "meta" : {
+    "versionId" : "1.0",
+    "lastUpdated" : "2023-01-25T12:00:00Z",
+    "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/bundle-epi-type2"]
+  },
+  "identifier" : {
+    "system" : "http://ema.europa.eu/identifier",
+    "value" : "WONDERDRUG-500MG-BUNDLE"
+  },
+  "type" : "document",
+  "timestamp" : "2023-01-25T12:00:00Z",
+  "entry" : [{
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Composition/composition-epi-type2-example-paracetamol",
+    "resource" : {
+      "resourceType" : "Composition",
+      "id" : "composition-epi-type2-example-paracetamol",
+      "meta" : {
+        "versionId" : "1",
+        "lastUpdated" : "2023-01-25T10:00:00Z",
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/composition-epi-type1"]
+      },
+      "language" : "en",
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\"><a name=\"Composition_composition-epi-type2-example-paracetamol\"> </a><p>Package Leaflet: Information for the user - Paracetamol Tablets</p></div>"
+      },
+      "contained" : [{
+        "resourceType" : "Binary",
+        "id" : "binaryImage-t2",
+        "meta" : {
+          "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/binary-epi"]
+        },
+        "contentType" : "image/png",
+        "data" : "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+      }],
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "composition-epi-type2-example-paracetamol"
+      }],
+      "version" : "1.0",
+      "status" : "final",
+      "type" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000155538",
+          "display" : "Package Leaflet"
+        }]
+      },
+      "subject" : [{
+        "reference" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-epi-type2-example-paracetamol"
+      }],
+      "date" : "2023-01-25",
+      "author" : [{
+        "reference" : "Organization/org-epi-type2-example-acme"
+      }],
+      "title" : "Package Leaflet: Information for the user - WonderDrug 500 mg tablets",
+      "section" : [{
+        "id" : "root-section",
+        "title" : "Package Leaflet",
+        "code" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000155538",
+            "display" : "Package Leaflet"
+          }]
+        },
+        "text" : {
+          "status" : "generated",
+          "div" : "<div xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">Package Leaflet</div>"
+        },
+        "entry" : [{
+          "reference" : "Organization/org-epi-type2-example-acme"
+        },
+        {
+          "reference" : "MedicinalProductDefinition/mpd-epi-type2-example-paracetamol"
+        }],
+        "section" : [{
+          "id" : "section-1",
+          "title" : "1. What is in this leaflet",
+          "code" : {
+            "coding" : [{
+              "system" : "https://spor.ema.europa.eu/rmswi",
+              "code" : "100000155538",
+              "display" : "1. What is in this leaflet"
+            }]
+          },
+          "text" : {
+            "status" : "generated",
+            "div" : "<div xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\"><h2>1. What is in this leaflet</h2><p>Read all of this leaflet carefully before you start taking this medicine because it contains important information for you.</p></div>"
+          }
+        }]
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Organization/org-epi-type2-example-acme",
+    "resource" : {
+      "resourceType" : "Organization",
+      "id" : "org-epi-type2-example-acme",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Organization-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"Organization_org-epi-type2-example-acme\"> </a><p class=\"res-header-id\"><b>Generated Narrative: Organization org-epi-type2-example-acme</b></p><a name=\"org-epi-type2-example-acme\"> </a><a name=\"hcorg-epi-type2-example-acme\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Organization-uv-epi.html\">Organization (ePI)</a></p></div><p><b>identifier</b>: <code>https://spor.ema.europa.eu/omswi</code>/LOC-100000000</p><p><b>active</b>: true</p><p><b>type</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 220000000034}\">Marketing authorisation holder</span></p><p><b>name</b>: Acme Pharma Inc.</p><h3>Contacts</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Address</b></td></tr><tr><td style=\"display: none\">*</td><td>123 Pharma Way, 102 37 Prague 10, Czech Republic</td></tr></table></div>"
+      },
+      "identifier" : [{
+        "system" : "https://spor.ema.europa.eu/omswi",
+        "value" : "LOC-100000000"
+      }],
+      "active" : true,
+      "type" : [{
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "220000000034",
+          "display" : "Marketing authorisation holder"
+        }]
+      }],
+      "name" : "Acme Pharma Inc.",
+      "contact" : [{
+        "address" : {
+          "text" : "123 Pharma Way, 102 37 Prague 10, Czech Republic",
+          "line" : ["123 Pharma Way"],
+          "city" : "Prague",
+          "postalCode" : "102 37",
+          "country" : "Czech Republic"
+        }
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-epi-type2-example-paracetamol",
+    "resource" : {
+      "resourceType" : "MedicinalProductDefinition",
+      "id" : "mpd-epi-type2-example-paracetamol",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/MedicinalProductDefinition-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"MedicinalProductDefinition_mpd-epi-type2-example-paracetamol\"> </a><p class=\"res-header-id\"><b>Generated Narrative: MedicinalProductDefinition mpd-epi-type2-example-paracetamol</b></p><a name=\"mpd-epi-type2-example-paracetamol\"> </a><a name=\"hcmpd-epi-type2-example-paracetamol\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-MedicinalProductDefinition-uv-epi.html\">MedicinalProductDefinition (ePI)</a></p></div><p><b>identifier</b>: <code>http://ema.europa.eu/identifier</code>/WONDERDRUG-500MG</p><p><b>domain</b>: <span title=\"Codes:{http://hl7.org/fhir/medicinal-product-domain Human}\">Human use</span></p><p><b>status</b>: <span title=\"Codes:{http://hl7.org/fhir/publication-status active}\">Active</span></p><p><b>legalStatusOfSupply</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000072084}\">Medicinal product subject to medical prescription</span></p><h3>Contacts</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Contact</b></td></tr><tr><td style=\"display: none\">*</td><td><a href=\"Organization-org-epi-type2-example-acme.html\">Organization Acme Pharma Inc.</a></td></tr></table><blockquote><p><b>name</b></p><p><b>productName</b>: WonderDrug 500 mg tablets</p><blockquote><p><b>part</b></p><p><b>part</b>: WonderDrug</p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/medicinal-product-name-part-type InventedNamePart}\">Invented name part</span></p></blockquote><blockquote><p><b>part</b></p><p><b>part</b>: 500 mg</p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/medicinal-product-name-part-type StrengthPart}\">Strength part</span></p></blockquote><blockquote><p><b>part</b></p><p><b>part</b>: tablets</p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/medicinal-product-name-part-type DoseFormPart}\">Pharmaceutical dose form part</span></p></blockquote><h3>Usages</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Country</b></td><td><b>Language</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{urn:iso:std:iso:3166 EE}\">Estonia</span></td><td><span title=\"Codes:{urn:ietf:bcp:47 et}\">Estonian</span></td></tr></table></blockquote></div>"
+      },
+      "identifier" : [{
+        "system" : "http://ema.europa.eu/identifier",
+        "value" : "WONDERDRUG-500MG"
+      }],
+      "domain" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/medicinal-product-domain",
+          "code" : "Human",
+          "display" : "Human use"
+        }]
+      },
+      "status" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/publication-status",
+          "code" : "active",
+          "display" : "Active"
+        }]
+      },
+      "legalStatusOfSupply" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000072084",
+          "display" : "Medicinal product subject to medical prescription"
+        }]
+      },
+      "contact" : [{
+        "contact" : {
+          "reference" : "Organization/org-epi-type2-example-acme"
+        }
+      }],
+      "name" : [{
+        "productName" : "WonderDrug 500 mg tablets",
+        "part" : [{
+          "part" : "WonderDrug",
+          "type" : {
+            "coding" : [{
+              "system" : "http://hl7.org/fhir/medicinal-product-name-part-type",
+              "code" : "InventedNamePart",
+              "display" : "Invented name part"
+            }]
+          }
+        },
+        {
+          "part" : "500 mg",
+          "type" : {
+            "coding" : [{
+              "system" : "http://hl7.org/fhir/medicinal-product-name-part-type",
+              "code" : "StrengthPart",
+              "display" : "Strength part"
+            }]
+          }
+        },
+        {
+          "part" : "tablets",
+          "type" : {
+            "coding" : [{
+              "system" : "http://hl7.org/fhir/medicinal-product-name-part-type",
+              "code" : "DoseFormPart",
+              "display" : "Pharmaceutical dose form part"
+            }]
+          }
+        }],
+        "usage" : [{
+          "country" : {
+            "coding" : [{
+              "system" : "urn:iso:std:iso:3166",
+              "code" : "EE",
+              "display" : "Estonia"
+            }]
+          },
+          "language" : {
+            "coding" : [{
+              "system" : "urn:ietf:bcp:47",
+              "code" : "et",
+              "display" : "Estonian"
+            }]
+          }
+        }]
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/RegulatedAuthorization/ra-epi-type2-example-paracetamol",
+    "resource" : {
+      "resourceType" : "RegulatedAuthorization",
+      "id" : "ra-epi-type2-example-paracetamol",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/RegulatedAuthorization-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"RegulatedAuthorization_ra-epi-type2-example-paracetamol\"> </a><p class=\"res-header-id\"><b>Generated Narrative: RegulatedAuthorization ra-epi-type2-example-paracetamol</b></p><a name=\"ra-epi-type2-example-paracetamol\"> </a><a name=\"hcra-epi-type2-example-paracetamol\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-RegulatedAuthorization-uv-epi.html\">RegulatedAuthorization (ePI)</a></p></div><p><b>identifier</b>: <code>http://ema.europa.eu/identifier</code>/MA-123456789</p><p><b>subject</b>: <a href=\"Bundle-bundle-epi-type2-example-paracetamol.html#http-//hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-epi-type2-example-paracetamol\">MedicinalProductDefinition: identifier = http://ema.europa.eu/identifier#WONDERDRUG-500MG; domain = Human use; status = Active; legalStatusOfSupply = Medicinal product subject to medical prescription</a></p><p><b>type</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 220000000061}\">Marketing Authorisation</span></p><p><b>region</b>: <span title=\"Codes:{urn:iso:std:iso:3166 EE}\">Estonia</span></p><p><b>status</b>: <span title=\"Codes:{http://hl7.org/fhir/publication-status active}\">Active</span></p><p><b>holder</b>: <a href=\"Organization-org-epi-type2-example-acme.html\">Organization Acme Pharma Inc.</a></p></div>"
+      },
+      "identifier" : [{
+        "system" : "http://ema.europa.eu/identifier",
+        "value" : "MA-123456789"
+      }],
+      "subject" : [{
+        "reference" : "http://hl7.org/fhir/uv/emedicinal-product-info/MedicinalProductDefinition/mpd-epi-type2-example-paracetamol"
+      }],
+      "type" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "220000000061",
+          "display" : "Marketing Authorisation"
+        }]
+      },
+      "region" : [{
+        "coding" : [{
+          "system" : "urn:iso:std:iso:3166",
+          "code" : "EE",
+          "display" : "Estonia"
+        }]
+      }],
+      "status" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/publication-status",
+          "code" : "active",
+          "display" : "Active"
+        }]
+      },
+      "holder" : {
+        "reference" : "Organization/org-epi-type2-example-acme"
+      }
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/PackagedProductDefinition/ppd-epi-type2-example-paracetamol",
+    "resource" : {
+      "resourceType" : "PackagedProductDefinition",
+      "id" : "ppd-epi-type2-example-paracetamol",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/PackagedProductDefinition-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"PackagedProductDefinition_ppd-epi-type2-example-paracetamol\"> </a><p class=\"res-header-id\"><b>Generated Narrative: PackagedProductDefinition ppd-epi-type2-example-paracetamol</b></p><a name=\"ppd-epi-type2-example-paracetamol\"> </a><a name=\"hcppd-epi-type2-example-paracetamol\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-PackagedProductDefinition-uv-epi.html\">PackagedProductDefinition (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/ppd-epi-type2-example-paracetamol</p><p><b>packageFor</b>: <a href=\"MedicinalProductDefinition-mpd-epi-type2-example-paracetamol.html\">MedicinalProductDefinition: identifier = http://ema.europa.eu/identifier#WONDERDRUG-500MG; domain = Human use; status = Active; legalStatusOfSupply = Medicinal product subject to medical prescription</a></p><p><b>status</b>: <span title=\"Codes:{http://hl7.org/fhir/publication-status active}\">Active</span></p><blockquote><p><b>packaging</b></p><p><b>type</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073498}\">Box</span></p><p><b>quantity</b>: 1</p><blockquote><p><b>packaging</b></p><p><b>type</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073496}\">Blister</span></p><blockquote><p><b>containedItem</b></p><h3>Items</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Reference</b></td></tr><tr><td style=\"display: none\">*</td><td><a href=\"ManufacturedItemDefinition-mid-epi-type2-example-paracetamol.html\">ManufacturedItemDefinition: identifier = http://example.org/identifier#mid-epi-type2-example-paracetamol; status = active; manufacturedDoseForm = Tablet; unitOfPresentation = Tablet</a></td></tr></table><p><b>amount</b>: 30 Tablet</p></blockquote></blockquote></blockquote></div>"
+      },
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "ppd-epi-type2-example-paracetamol"
+      }],
+      "packageFor" : [{
+        "reference" : "MedicinalProductDefinition/mpd-epi-type2-example-paracetamol"
+      }],
+      "status" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/publication-status",
+          "code" : "active",
+          "display" : "Active"
+        }]
+      },
+      "packaging" : {
+        "type" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000073498",
+            "display" : "Box"
+          }]
+        },
+        "quantity" : 1,
+        "packaging" : [{
+          "type" : {
+            "coding" : [{
+              "system" : "https://spor.ema.europa.eu/rmswi",
+              "code" : "100000073496",
+              "display" : "Blister"
+            }]
+          },
+          "containedItem" : [{
+            "item" : {
+              "reference" : {
+                "reference" : "ManufacturedItemDefinition/mid-epi-type2-example-paracetamol"
+              }
+            },
+            "amount" : {
+              "value" : 30,
+              "unit" : "Tablet",
+              "system" : "http://standardterms.edqm.eu"
+            }
+          }]
+        }]
+      }
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/ManufacturedItemDefinition/mid-epi-type2-example-paracetamol",
+    "resource" : {
+      "resourceType" : "ManufacturedItemDefinition",
+      "id" : "mid-epi-type2-example-paracetamol",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/ManufacturedItemDefinition-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"ManufacturedItemDefinition_mid-epi-type2-example-paracetamol\"> </a><p class=\"res-header-id\"><b>Generated Narrative: ManufacturedItemDefinition mid-epi-type2-example-paracetamol</b></p><a name=\"mid-epi-type2-example-paracetamol\"> </a><a name=\"hcmid-epi-type2-example-paracetamol\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-ManufacturedItemDefinition-uv-epi.html\">ManufacturedItemDefinition (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/mid-epi-type2-example-paracetamol</p><p><b>status</b>: Active</p><p><b>manufacturedDoseForm</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073664}\">Tablet</span></p><p><b>unitOfPresentation</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 200000002152}\">Tablet</span></p><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig shape}\">Shape</span></p><p><b>value</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073670}\">Round</span></p></blockquote><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig color}\">Color</span></p><p><b>value</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073586}\">White</span></p></blockquote><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig size}\">Size</span></p><p><b>value</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000000000}\">10 mm</span></p></blockquote><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig score}\">Score</span></p><p><b>value</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000000000}\">Scored</span></p></blockquote><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig imprint}\">Imprint</span></p><p><b>value</b>: </p><div><p>WD500</p>\n</div></blockquote></div>"
+      },
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "mid-epi-type2-example-paracetamol"
+      }],
+      "status" : "active",
+      "manufacturedDoseForm" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000073664",
+          "display" : "Tablet"
+        }]
+      },
+      "unitOfPresentation" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "200000002152",
+          "display" : "Tablet"
+        }]
+      },
+      "property" : [{
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "shape",
+            "display" : "Shape"
+          }]
+        },
+        "valueCodeableConcept" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000073670",
+            "display" : "Round"
+          }]
+        }
+      },
+      {
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "color",
+            "display" : "Color"
+          }]
+        },
+        "valueCodeableConcept" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000073586",
+            "display" : "White"
+          }]
+        }
+      },
+      {
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "size",
+            "display" : "Size"
+          }]
+        },
+        "valueCodeableConcept" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000000000",
+            "display" : "10 mm"
+          }]
+        }
+      },
+      {
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "score",
+            "display" : "Score"
+          }]
+        },
+        "valueCodeableConcept" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000000000",
+            "display" : "Scored"
+          }]
+        }
+      },
+      {
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "imprint",
+            "display" : "Imprint"
+          }]
+        },
+        "valueMarkdown" : "WD500"
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/AdministrableProductDefinition/apd-epi-type2-example-paracetamol",
+    "resource" : {
+      "resourceType" : "AdministrableProductDefinition",
+      "id" : "apd-epi-type2-example-paracetamol",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/AdministrableProductDefinition-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"AdministrableProductDefinition_apd-epi-type2-example-paracetamol\"> </a><p class=\"res-header-id\"><b>Generated Narrative: AdministrableProductDefinition apd-epi-type2-example-paracetamol</b></p><a name=\"apd-epi-type2-example-paracetamol\"> </a><a name=\"hcapd-epi-type2-example-paracetamol\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-AdministrableProductDefinition-uv-epi.html\">AdministrableProductDefinition (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/apd-epi-type2-example-paracetamol</p><p><b>status</b>: Active</p><p><b>formOf</b>: <a href=\"MedicinalProductDefinition-mpd-epi-type2-example-paracetamol.html\">MedicinalProductDefinition: identifier = http://ema.europa.eu/identifier#WONDERDRUG-500MG; domain = Human use; status = Active; legalStatusOfSupply = Medicinal product subject to medical prescription</a></p><p><b>administrableDoseForm</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073664}\">Tablet</span></p><p><b>unitOfPresentation</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 200000002152}\">Tablet</span></p><p><b>producedFrom</b>: <a href=\"ManufacturedItemDefinition-mid-epi-type2-example-paracetamol.html\">ManufacturedItemDefinition: identifier = http://example.org/identifier#mid-epi-type2-example-paracetamol; status = active; manufacturedDoseForm = Tablet; unitOfPresentation = Tablet</a></p><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig shape}\">Shape</span></p><p><b>value</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073670}\">Round</span></p></blockquote><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig color}\">Color</span></p><p><b>value</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073586}\">White</span></p></blockquote><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig flavor}\">Flavor</span></p><p><b>value</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000000000}\">None</span></p></blockquote><blockquote><p><b>property</b></p><p><b>type</b>: <span title=\"Codes:{http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig image}\">Image</span></p><p><b>value</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000000000}\">Tablet Image</span></p></blockquote><h3>RouteOfAdministrations</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Code</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000073619}\">Oral use</span></td></tr></table></div>"
+      },
+      "identifier" : [{
+        "system" : "http://example.org/identifier",
+        "value" : "apd-epi-type2-example-paracetamol"
+      }],
+      "status" : "active",
+      "formOf" : [{
+        "reference" : "MedicinalProductDefinition/mpd-epi-type2-example-paracetamol"
+      }],
+      "administrableDoseForm" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000073664",
+          "display" : "Tablet"
+        }]
+      },
+      "unitOfPresentation" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "200000002152",
+          "display" : "Tablet"
+        }]
+      },
+      "producedFrom" : [{
+        "reference" : "ManufacturedItemDefinition/mid-epi-type2-example-paracetamol"
+      }],
+      "property" : [{
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "shape",
+            "display" : "Shape"
+          }]
+        },
+        "valueCodeableConcept" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000073670",
+            "display" : "Round"
+          }]
+        }
+      },
+      {
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "color",
+            "display" : "Color"
+          }]
+        },
+        "valueCodeableConcept" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000073586",
+            "display" : "White"
+          }]
+        }
+      },
+      {
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "flavor",
+            "display" : "Flavor"
+          }]
+        },
+        "valueCodeableConcept" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000000000",
+            "display" : "None"
+          }]
+        }
+      },
+      {
+        "type" : {
+          "coding" : [{
+            "system" : "http://hl7.org/fhir/uv/emedicinal-product-info/CodeSystem/epi-ig",
+            "code" : "image",
+            "display" : "Image"
+          }]
+        },
+        "valueCodeableConcept" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000000000",
+            "display" : "Tablet Image"
+          }]
+        }
+      }],
+      "routeOfAdministration" : [{
+        "code" : {
+          "coding" : [{
+            "system" : "https://spor.ema.europa.eu/rmswi",
+            "code" : "100000073619",
+            "display" : "Oral use"
+          }]
+        }
+      }]
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Ingredient/ingredient-epi-type2-example-paracetamol-active",
+    "resource" : {
+      "resourceType" : "Ingredient",
+      "id" : "ingredient-epi-type2-example-paracetamol-active",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Ingredient-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"Ingredient_ingredient-epi-type2-example-paracetamol-active\"> </a><p class=\"res-header-id\"><b>Generated Narrative: Ingredient ingredient-epi-type2-example-paracetamol-active</b></p><a name=\"ingredient-epi-type2-example-paracetamol-active\"> </a><a name=\"hcingredient-epi-type2-example-paracetamol-active\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Ingredient-uv-epi.html\">Ingredient (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/ingredient-epi-type2-example-paracetamol-active</p><p><b>status</b>: Active</p><p><b>for</b>: <a href=\"ManufacturedItemDefinition-mid-epi-type2-example-paracetamol.html\">ManufacturedItemDefinition: identifier = http://example.org/identifier#mid-epi-type2-example-paracetamol; status = active; manufacturedDoseForm = Tablet; unitOfPresentation = Tablet</a></p><p><b>role</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000072072}\">Active</span></p><p><b>function</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000136065}\">API</span></p><p><b>group</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000136179}\">Chemical</span></p><blockquote><p><b>substance</b></p><h3>Codes</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Concept</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{https://spor.ema.europa.eu/smswi 100000000000}\">Paracetamol</span></td></tr></table><h3>Strengths</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Presentation[x]</b></td></tr><tr><td style=\"display: none\">*</td><td>500 mg<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM  codemg = 'mg')</span>/1 tablet<span style=\"background: LightGoldenRodYellow\"> (Details: standardterms.edqm.eu  code10219000 = 'Tablet')</span></td></tr></table></blockquote></div>"
+      },
+      "identifier" : {
+        "system" : "http://example.org/identifier",
+        "value" : "ingredient-epi-type2-example-paracetamol-active"
+      },
+      "status" : "active",
+      "for" : [{
+        "reference" : "ManufacturedItemDefinition/mid-epi-type2-example-paracetamol"
+      }],
+      "role" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000072072",
+          "display" : "Active"
+        }]
+      },
+      "function" : [{
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000136065",
+          "display" : "API"
+        }]
+      }],
+      "group" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000136179",
+          "display" : "Chemical"
+        }]
+      },
+      "substance" : {
+        "code" : {
+          "concept" : {
+            "coding" : [{
+              "system" : "https://spor.ema.europa.eu/smswi",
+              "code" : "100000000000",
+              "display" : "Paracetamol"
+            }]
+          }
+        },
+        "strength" : [{
+          "presentationRatio" : {
+            "numerator" : {
+              "value" : 500,
+              "unit" : "mg",
+              "system" : "http://unitsofmeasure.org",
+              "code" : "mg"
+            },
+            "denominator" : {
+              "value" : 1,
+              "unit" : "tablet",
+              "system" : "http://standardterms.edqm.eu",
+              "code" : "10219000"
+            }
+          }
+        }]
+      }
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Ingredient/ingredient-epi-type2-example-paracetamol-excipient-1",
+    "resource" : {
+      "resourceType" : "Ingredient",
+      "id" : "ingredient-epi-type2-example-paracetamol-excipient-1",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Ingredient-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"Ingredient_ingredient-epi-type2-example-paracetamol-excipient-1\"> </a><p class=\"res-header-id\"><b>Generated Narrative: Ingredient ingredient-epi-type2-example-paracetamol-excipient-1</b></p><a name=\"ingredient-epi-type2-example-paracetamol-excipient-1\"> </a><a name=\"hcingredient-epi-type2-example-paracetamol-excipient-1\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Ingredient-uv-epi.html\">Ingredient (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/ingredient-epi-type2-example-paracetamol-excipient-1</p><p><b>status</b>: Active</p><p><b>for</b>: <a href=\"ManufacturedItemDefinition-mid-epi-type2-example-paracetamol.html\">ManufacturedItemDefinition: identifier = http://example.org/identifier#mid-epi-type2-example-paracetamol; status = active; manufacturedDoseForm = Tablet; unitOfPresentation = Tablet</a></p><p><b>role</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000072082}\">Excipient</span></p><blockquote><p><b>substance</b></p><h3>Codes</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Concept</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{https://spor.ema.europa.eu/smswi 100000000001}\">Pregelatinised starch</span></td></tr></table></blockquote></div>"
+      },
+      "identifier" : {
+        "system" : "http://example.org/identifier",
+        "value" : "ingredient-epi-type2-example-paracetamol-excipient-1"
+      },
+      "status" : "active",
+      "for" : [{
+        "reference" : "ManufacturedItemDefinition/mid-epi-type2-example-paracetamol"
+      }],
+      "role" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000072082",
+          "display" : "Excipient"
+        }]
+      },
+      "substance" : {
+        "code" : {
+          "concept" : {
+            "coding" : [{
+              "system" : "https://spor.ema.europa.eu/smswi",
+              "code" : "100000000001",
+              "display" : "Pregelatinised starch"
+            }]
+          }
+        }
+      }
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Ingredient/ingredient-epi-type2-example-paracetamol-excipient-2",
+    "resource" : {
+      "resourceType" : "Ingredient",
+      "id" : "ingredient-epi-type2-example-paracetamol-excipient-2",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Ingredient-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"Ingredient_ingredient-epi-type2-example-paracetamol-excipient-2\"> </a><p class=\"res-header-id\"><b>Generated Narrative: Ingredient ingredient-epi-type2-example-paracetamol-excipient-2</b></p><a name=\"ingredient-epi-type2-example-paracetamol-excipient-2\"> </a><a name=\"hcingredient-epi-type2-example-paracetamol-excipient-2\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Ingredient-uv-epi.html\">Ingredient (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/ingredient-epi-type2-example-paracetamol-excipient-2</p><p><b>status</b>: Active</p><p><b>for</b>: <a href=\"ManufacturedItemDefinition-mid-epi-type2-example-paracetamol.html\">ManufacturedItemDefinition: identifier = http://example.org/identifier#mid-epi-type2-example-paracetamol; status = active; manufacturedDoseForm = Tablet; unitOfPresentation = Tablet</a></p><p><b>role</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000072082}\">Excipient</span></p><blockquote><p><b>substance</b></p><h3>Codes</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Concept</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{https://spor.ema.europa.eu/smswi 100000000002}\">Maize starch</span></td></tr></table></blockquote></div>"
+      },
+      "identifier" : {
+        "system" : "http://example.org/identifier",
+        "value" : "ingredient-epi-type2-example-paracetamol-excipient-2"
+      },
+      "status" : "active",
+      "for" : [{
+        "reference" : "ManufacturedItemDefinition/mid-epi-type2-example-paracetamol"
+      }],
+      "role" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000072082",
+          "display" : "Excipient"
+        }]
+      },
+      "substance" : {
+        "code" : {
+          "concept" : {
+            "coding" : [{
+              "system" : "https://spor.ema.europa.eu/smswi",
+              "code" : "100000000002",
+              "display" : "Maize starch"
+            }]
+          }
+        }
+      }
+    }
+  },
+  {
+    "fullUrl" : "http://hl7.org/fhir/uv/emedicinal-product-info/Ingredient/ingredient-epi-type2-example-paracetamol-excipient-3",
+    "resource" : {
+      "resourceType" : "Ingredient",
+      "id" : "ingredient-epi-type2-example-paracetamol-excipient-3",
+      "meta" : {
+        "profile" : ["http://hl7.org/fhir/uv/emedicinal-product-info/StructureDefinition/Ingredient-uv-epi"]
+      },
+      "text" : {
+        "status" : "generated",
+        "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"Ingredient_ingredient-epi-type2-example-paracetamol-excipient-3\"> </a><p class=\"res-header-id\"><b>Generated Narrative: Ingredient ingredient-epi-type2-example-paracetamol-excipient-3</b></p><a name=\"ingredient-epi-type2-example-paracetamol-excipient-3\"> </a><a name=\"hcingredient-epi-type2-example-paracetamol-excipient-3\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-Ingredient-uv-epi.html\">Ingredient (ePI)</a></p></div><p><b>identifier</b>: <code>http://example.org/identifier</code>/ingredient-epi-type2-example-paracetamol-excipient-3</p><p><b>status</b>: Active</p><p><b>for</b>: <a href=\"ManufacturedItemDefinition-mid-epi-type2-example-paracetamol.html\">ManufacturedItemDefinition: identifier = http://example.org/identifier#mid-epi-type2-example-paracetamol; status = active; manufacturedDoseForm = Tablet; unitOfPresentation = Tablet</a></p><p><b>role</b>: <span title=\"Codes:{https://spor.ema.europa.eu/rmswi 100000072082}\">Excipient</span></p><blockquote><p><b>substance</b></p><h3>Codes</h3><table class=\"grid\"><tr><td style=\"display: none\">-</td><td><b>Concept</b></td></tr><tr><td style=\"display: none\">*</td><td><span title=\"Codes:{https://spor.ema.europa.eu/smswi 100000000003}\">Magnesium stearate</span></td></tr></table></blockquote></div>"
+      },
+      "identifier" : {
+        "system" : "http://example.org/identifier",
+        "value" : "ingredient-epi-type2-example-paracetamol-excipient-3"
+      },
+      "status" : "active",
+      "for" : [{
+        "reference" : "ManufacturedItemDefinition/mid-epi-type2-example-paracetamol"
+      }],
+      "role" : {
+        "coding" : [{
+          "system" : "https://spor.ema.europa.eu/rmswi",
+          "code" : "100000072082",
+          "display" : "Excipient"
+        }]
+      },
+      "substance" : {
+        "code" : {
+          "concept" : {
+            "coding" : [{
+              "system" : "https://spor.ema.europa.eu/smswi",
+              "code" : "100000000003",
+              "display" : "Magnesium stearate"
+            }]
+          }
+        }
+      }
+    }
+  }]
+}
